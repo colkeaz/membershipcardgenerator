@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Org config (membership counter) ──
+    // Any authenticated user can read; any authenticated user can write
+    // (the counter is only incremented during registration/import)
+    match /org/{docId} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // ── Members ──
+    match /members/{uid} {
+      // A user can always read their own doc
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      // Officers and admins can read ALL member docs
+      allow read: if request.auth != null && isOfficerOrAbove();
+
+      // ── SELF-REGISTRATION ──
+      // Any authenticated user can create their OWN member doc,
+      // as long as role='member' and status='pending'.
+      // This works even when the DB is completely empty.
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.role == 'member'
+        && request.resource.data.status == 'pending';
+
+      // A member can update their own non-sensitive fields
+      allow update: if request.auth != null
+        && request.auth.uid == uid
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['role', 'status', 'membershipNumber']);
+
+      // Officers/admins can update any member (approve, deactivate, change role)
+      allow update: if request.auth != null && isOfficerOrAbove();
+
+      // Only admins can delete
+      allow delete: if request.auth != null && isAdmin();
+    }
+
+    // ── Helpers ──
+    // Safe lookup — returns empty map if doc doesn't exist (avoids permission errors)
+    function getMemberRole() {
+      let snap = get(/databases/$(database)/documents/members/$(request.auth.uid));
+      return snap.data.get('role', 'member');
+    }
+
+    function isOfficerOrAbove() {
+      let role = getMemberRole();
+      return role == 'officer' || role == 'admin';
+    }
+
+    function isAdmin() {
+      return getMemberRole() == 'admin';
+    }
+  }
+}

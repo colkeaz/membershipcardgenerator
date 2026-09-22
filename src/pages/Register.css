@@ -1,0 +1,95 @@
+.register-page {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 60px 0;
+}
+
+.register-bg {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(143,0,0,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(255,188,1,0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.register-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 520px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.register-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.register-logo {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,188,1,0.4);
+  flex-shrink: 0;
+}
+
+.register-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.register-sub {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.register-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.input-error {
+  border-color: var(--color-error) !important;
+}
+
+.field-error {
+  font-size: 0.78rem;
+  color: var(--color-error);
+  margin-top: 2px;
+}
+
+.register-submit {
+  width: 100%;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.register-note {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+  text-align: center;
+  line-height: 1.6;
+  border-top: 1px solid var(--color-border);
+  padding-top: 16px;
+  margin-top: -4px;
+}
+
+@media (max-width: 560px) {
+  .register-card { padding: 28px 20px; }
+}
