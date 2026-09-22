@@ -39,7 +39,7 @@ export const CardFront = React.forwardRef(function CardFront({ member, isPreview
             SR-Code:&nbsp;
             <span className="card-sr-value">{member?.studentId || '20XX-XXXXX'}</span>
           </p>
-          <p className="card-course">{member?.course || 'Course'} · {member?.yearLevel || 'Year'}</p>
+          <p className="card-course">{member?.program || member?.course || 'Program'} · {member?.yearLevel || 'Year'}</p>
         </div>
       </div>
 

@@ -17,17 +17,21 @@ export function parseCSV(file) {
           reject(new Error(result.errors[0].message));
           return;
         }
-        const members = result.data.map((row, i) => ({
-          fullName:         row.fullname || row['full name'] || row.name || '',
-          studentId:        row.studentid || row['student id'] || row.id || '',
-          course:           row.course || row.program || '',
-          yearLevel:        row.yearlevel || row['year level'] || row.year || '',
-          membershipNumber: generateMembershipNumber(i + 1),
-          schoolYear:       getCurrentSchoolYear(),
-          semester:         getCurrentSemester(),
-          status:           'pending',
-          role:             'member',
-        }));
+        const members = result.data.map((row, i) => {
+          const prog = row.program || row.course || '';
+          return {
+            fullName:         row.fullname || row['full name'] || row.name || '',
+            studentId:        row.studentid || row['student id'] || row.id || '',
+            program:          prog,
+            course:           prog,
+            yearLevel:        row.yearlevel || row['year level'] || row.year || '',
+            membershipNumber: generateMembershipNumber(i + 1),
+            schoolYear:       getCurrentSchoolYear(),
+            semester:         getCurrentSemester(),
+            status:           'pending',
+            role:             'member',
+          };
+        });
         resolve(members);
       },
       error: (err) => reject(err),
@@ -39,8 +43,19 @@ export function parseCSV(file) {
  * Export an array of member objects to a downloadable CSV file.
  */
 export function exportToCSV(members, filename = 'ssc-al-members.csv') {
-  const fields = ['membershipNumber', 'fullName', 'studentId', 'course', 'yearLevel', 'schoolYear', 'semester', 'status', 'role'];
-  const csv = Papa.unparse(members, { fields });
+  const formatted = members.map(m => ({
+    membershipNumber: m.membershipNumber,
+    fullName:         m.fullName,
+    studentId:        m.studentId,
+    program:          m.program || m.course,
+    yearLevel:        m.yearLevel,
+    schoolYear:       m.schoolYear,
+    semester:         m.semester,
+    status:           m.status,
+    role:             m.role,
+  }));
+  const fields = ['membershipNumber', 'fullName', 'studentId', 'program', 'yearLevel', 'schoolYear', 'semester', 'status', 'role'];
+  const csv = Papa.unparse(formatted, { fields });
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');

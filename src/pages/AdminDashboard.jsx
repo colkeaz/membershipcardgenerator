@@ -12,8 +12,10 @@ import { parseCSV, exportToCSV } from '../utils/csvParser';
 import { generateMembershipNumber, getCurrentSchoolYear, getCurrentSemester } from '../utils/memberNumber';
 import {
   Users, CheckCircle, XCircle, Upload, Download,
-  Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Eye, X
+  Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Eye, X, AlertOctagon
 } from 'lucide-react';
+import QRCode from 'qrcode';
+import { signCard, buildVerifyUrl } from '../utils/cardSigning';
 import './AdminDashboard.css';
 
 const PAGE_SIZE = 25;
@@ -40,7 +42,37 @@ export default function AdminDashboard() {
 
   // Card preview modal
   const [previewMember, setPreviewMember] = useState(null);
+  const [previewQrDataUrl, setPreviewQrDataUrl] = useState('');
   const previewCardRef = useRef(null);
+
+  // Deactivate All modal
+  const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [deactivatingAll, setDeactivatingAll]         = useState(false);
+
+  // Generate QR for preview card modal
+  useEffect(() => {
+    if (!previewMember) {
+      setPreviewQrDataUrl('');
+      return;
+    }
+    let cancelled = false;
+    async function genPreviewQR() {
+      try {
+        const sig = await signCard(previewMember.membershipNumber, previewMember.id);
+        const url = buildVerifyUrl(previewMember.membershipNumber, previewMember.id, sig);
+        const dataUrl = await QRCode.toDataURL(url, {
+          width: 180, margin: 1,
+          color: { dark: '#1a0000', light: '#fff8f0' },
+          errorCorrectionLevel: 'H',
+        });
+        if (!cancelled) setPreviewQrDataUrl(dataUrl);
+      } catch (err) {
+        console.error('Failed to generate preview QR:', err);
+      }
+    }
+    genPreviewQR();
+    return () => { cancelled = true; };
+  }, [previewMember]);
 
   // ── Fetch all members (capped at 50k, paginated client-side) ──
   const fetchMembers = async () => {
@@ -74,7 +106,7 @@ export default function AdminDashboard() {
       || m.fullName?.toLowerCase().includes(q)
       || m.studentId?.toLowerCase().includes(q)
       || m.membershipNumber?.toLowerCase().includes(q)
-      || m.course?.toLowerCase().includes(q);
+      || (m.program || m.course)?.toLowerCase().includes(q);
     return matchStatus && matchYear && matchSearch;
   });
 
@@ -87,18 +119,61 @@ export default function AdminDashboard() {
   // ── Actions ──
   const updateStatus = async (uid, newStatus) => {
     try {
-      await updateDoc(doc(db, 'members', uid), { status: newStatus });
-      setMembers(prev => prev.map(m => m.id === uid ? { ...m, status: newStatus } : m));
+      const updates = { status: newStatus };
+      if (newStatus === 'active') {
+        // Automatically renew/stamp current academic year & semester
+        updates.schoolYear = getCurrentSchoolYear();
+        updates.semester   = getCurrentSemester();
+      }
+      await updateDoc(doc(db, 'members', uid), updates);
+      setMembers(prev => prev.map(m => m.id === uid ? { ...m, ...updates } : m));
       setStats(prev => {
         const old = members.find(m => m.id === uid)?.status;
         return {
           ...prev,
-          [old]: prev[old] - 1,
-          [newStatus]: prev[newStatus] + 1,
+          [old]: Math.max(0, (prev[old] || 0) - 1),
+          [newStatus]: (prev[newStatus] || 0) + 1,
         };
       });
-      toast(`Member ${newStatus === 'active' ? 'approved' : 'deactivated'}.`, 'success');
+      toast(`Member ${newStatus === 'active' ? 'approved & renewed for ' + updates.semester : 'deactivated'}.`, 'success');
     } catch { toast('Action failed. Please try again.', 'error'); }
+  };
+
+  // ── Deactivate All Members (for new semester renewal) ──
+  const confirmDeactivateAll = async () => {
+    setDeactivatingAll(true);
+    try {
+      const activeMembers = members.filter(m => m.status === 'active');
+      if (activeMembers.length === 0) {
+        setShowDeactivateModal(false);
+        return;
+      }
+
+      const BATCH_SIZE = 499;
+      for (let i = 0; i < activeMembers.length; i += BATCH_SIZE) {
+        const batch = writeBatch(db);
+        const chunk = activeMembers.slice(i, i + BATCH_SIZE);
+        chunk.forEach((m) => {
+          batch.update(doc(db, 'members', m.id), { status: 'inactive' });
+        });
+        await batch.commit();
+      }
+
+      setMembers(prev => prev.map(m => m.status === 'active' ? { ...m, status: 'inactive' } : m));
+      setStats(prev => ({
+        ...prev,
+        active: 0,
+        inactive: prev.inactive + activeMembers.length,
+      }));
+
+      toast(`All ${activeMembers.length} active members deactivated for the new semester.`, 'success');
+      setShowDeactivateModal(false);
+    } catch (err) {
+      console.error(err);
+      toast('Failed to deactivate members. Please try again.', 'error');
+    } finally {
+      setDeactivatingAll(false);
+    }
   };
 
   const updateRole = async (uid, newRole) => {
@@ -198,6 +273,17 @@ export default function AdminDashboard() {
             <button id="btn-import-csv" className="btn btn-primary btn-sm" onClick={() => fileInputRef.current?.click()}>
               <Upload size={15} /> Import CSV
             </button>
+            {self?.role === 'admin' && (
+              <button
+                id="btn-deactivate-all"
+                className="btn btn-outline-danger btn-sm"
+                onClick={() => setShowDeactivateModal(true)}
+                disabled={loading || stats.active === 0}
+                title="Deactivate all active members when a new semester starts"
+              >
+                <AlertOctagon size={15} /> Deactivate All (New Term)
+              </button>
+            )}
             <input
               ref={fileInputRef}
               type="file"
@@ -269,8 +355,8 @@ export default function AdminDashboard() {
                   <tr>
                     <th>Member No.</th>
                     <th>Full Name</th>
-                    <th>Student ID</th>
-                    <th>Course</th>
+                    <th>SR-Code</th>
+                    <th>Program</th>
                     <th>Year</th>
                     <th>Status</th>
                     <th>Role</th>
@@ -294,7 +380,7 @@ export default function AdminDashboard() {
                       <td style={{ fontWeight:600 }}>{m.fullName}</td>
                       <td style={{ fontFamily:'monospace', fontSize:'0.85rem' }}>{m.studentId}</td>
                       <td style={{ fontSize:'0.82rem', color:'var(--color-text-muted)', maxWidth:'160px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                        {m.course}
+                        {m.program || m.course}
                       </td>
                       <td style={{ fontSize:'0.85rem' }}>{m.yearLevel}</td>
                       <td>
@@ -439,12 +525,53 @@ export default function AdminDashboard() {
               </button>
             </div>
             <div style={{ display:'flex', justifyContent:'center', padding:'20px 0' }}>
-              <MembershipCard ref={previewCardRef} member={previewMember} />
+              <MembershipCard ref={previewCardRef} member={previewMember} qrDataUrl={previewQrDataUrl} />
             </div>
             <div style={{ display:'flex', gap:12, justifyContent:'flex-end' }}>
               <button className="btn btn-outline" onClick={() => setPreviewMember(null)}>Close</button>
               <button id="btn-download-preview-card" className="btn btn-gold btn-sm" onClick={handlePreviewExport}>
                 <Download size={15} /> Download PNG
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Deactivate All Confirmation Modal ── */}
+      {showDeactivateModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Confirm Deactivate All">
+          <div className="modal" style={{ maxWidth:'480px' }}>
+            <div className="modal-header">
+              <h2 style={{ fontSize:'1.15rem', color:'#f87171', display:'flex', alignItems:'center', gap:8 }}>
+                <AlertOctagon size={20} /> Reset for New Semester
+              </h2>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowDeactivateModal(false)} aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ padding:'16px 0', display:'flex', flexDirection:'column', gap:12 }}>
+              <p style={{ fontSize:'0.9rem', lineHeight:1.5, margin:0 }}>
+                Are you sure you want to deactivate all <strong>{stats.active}</strong> currently active members?
+              </p>
+              <div style={{ background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'12px', fontSize:'0.82rem', color:'var(--color-text-muted)', lineHeight:1.4 }}>
+                <strong style={{ color:'#f87171', display:'block', marginBottom:4 }}>What will happen:</strong>
+                • Member cards will change to "Membership Inactive / Expired".<br/>
+                • Students will see a "Renew Membership" button directing to payment.<br/>
+                • Their SR-Code and Member Number are preserved permanently.<br/>
+                • When an officer clicks "Approve" upon receiving proof of payment, their card immediately updates to the new semester!
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:12, justifyContent:'flex-end', marginTop:8 }}>
+              <button className="btn btn-outline" onClick={() => setShowDeactivateModal(false)} disabled={deactivatingAll}>
+                Cancel
+              </button>
+              <button
+                id="btn-confirm-deactivate-all"
+                className="btn btn-danger"
+                onClick={confirmDeactivateAll}
+                disabled={deactivatingAll}
+              >
+                {deactivatingAll ? <><span className="spinner spinner-sm" /> Deactivating…</> : `Deactivate All (${stats.active})`}
               </button>
             </div>
           </div>

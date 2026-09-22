@@ -12,11 +12,11 @@ service cloud.firestore {
 
     // ── Members ──
     match /members/{uid} {
-      // A user can always read their own doc
-      allow read: if request.auth != null && request.auth.uid == uid;
+      // Allow single-document get for QR code verification by camera/officers without requiring login
+      allow get: if true;
 
-      // Officers and admins can read ALL member docs
-      allow read: if request.auth != null && isOfficerOrAbove();
+      // Allow listing/searching all members ONLY for officers and admins
+      allow list: if request.auth != null && isOfficerOrAbove();
 
       // ── SELF-REGISTRATION ──
       // Any authenticated user can create their OWN member doc,

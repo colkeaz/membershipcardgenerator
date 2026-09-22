@@ -41,7 +41,7 @@ export default function Register() {
     const e = {};
     if (!form.fullName.trim())  e.fullName  = 'Full name is required';
     if (!form.studentId.trim()) e.studentId = 'Student ID is required';
-    if (!form.course)           e.course    = 'Please select your course';
+    if (!form.course)           e.course    = 'Please select your program';
     if (!form.yearLevel)        e.yearLevel = 'Please select your year level';
     return e;
   };
@@ -74,6 +74,7 @@ export default function Register() {
           email:            user.email,
           fullName:         form.fullName.trim(),
           studentId:        form.studentId.trim(),
+          program:          form.course,
           course:           form.course,
           yearLevel:        form.yearLevel,
           membershipNumber,
@@ -135,7 +136,7 @@ export default function Register() {
               <div className="form-group">
                 <label htmlFor="reg-studentId" className="form-label">
                   <Hash size={13} style={{ display:'inline', marginRight:4 }} />
-                  Student ID
+                  SR-Code
                 </label>
                 <input
                   id="reg-studentId"
@@ -149,11 +150,11 @@ export default function Register() {
                 {errors.studentId && <span className="field-error">{errors.studentId}</span>}
               </div>
 
-              {/* Course */}
+              {/* Program */}
               <div className="form-group">
                 <label htmlFor="reg-course" className="form-label">
                   <BookOpen size={13} style={{ display:'inline', marginRight:4 }} />
-                  Course / Program
+                  Program
                 </label>
                 <select
                   id="reg-course"
@@ -162,7 +163,7 @@ export default function Register() {
                   value={form.course}
                   onChange={handleChange}
                 >
-                  <option value="">Select course…</option>
+                  <option value="">Select program…</option>
                   {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
                 {errors.course && <span className="field-error">{errors.course}</span>}

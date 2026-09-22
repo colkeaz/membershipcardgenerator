@@ -4,9 +4,12 @@ import MembershipCard, { CardFront, CardBack } from '../components/MembershipCar
 import { exportCardAsPNG, exportCardAsPDF } from '../utils/cardExport';
 import { signCard, buildVerifyUrl } from '../utils/cardSigning';
 import { useToast } from '../components/ToastProvider';
-import { Download, FileImage, Clock, Info, RotateCcw } from 'lucide-react';
+import { Download, FileImage, Clock, Info, RotateCcw, ExternalLink } from 'lucide-react';
 import QRCode from 'qrcode';
 import './CardPage.css';
+
+// Placeholder Google Form for renewal payments (can be replaced with actual form URL)
+const RENEWAL_FORM_URL = import.meta.env.VITE_RENEWAL_FORM_URL || 'https://forms.google.com/your-membership-renewal-form';
 
 export default function CardPage() {
   const { member, user } = useAuth();
@@ -24,8 +27,9 @@ export default function CardPage() {
     if (!member || !user) return;
     let cancelled = false;
     async function buildQR() {
-      const sig = await signCard(member.membershipNumber, user.uid);
-      const url = buildVerifyUrl(member.membershipNumber, user.uid, sig);
+      const targetUid = member.id || user.uid;
+      const sig = await signCard(member.membershipNumber, targetUid);
+      const url = buildVerifyUrl(member.membershipNumber, targetUid, sig);
       const dataUrl = await QRCode.toDataURL(url, {
         width: 180, margin: 1,
         color: { dark: '#1a0000', light: '#fff8f0' },
@@ -108,10 +112,24 @@ export default function CardPage() {
         )}
         {isInactive && (
           <div className="card-status-box card-status-inactive">
-            <Info size={18} />
-            <div>
-              <strong>Membership Inactive</strong>
-              <p>Please contact an SSC-AL officer to reactivate your membership.</p>
+            <Info size={20} className="card-status-icon-inactive" />
+            <div className="card-status-inactive-body">
+              <strong>Membership Inactive / Expired</strong>
+              <p>Your membership for the previous semester has expired. Please renew to re-activate your card for the current semester.</p>
+              <div className="card-renew-action">
+                <a
+                  href={RENEWAL_FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary btn-renew"
+                  id="btn-renew-membership"
+                >
+                  <ExternalLink size={16} /> Renew Membership
+                </a>
+                <span className="card-renew-note">
+                  Submitting the form and membership fee will notify officers to reactivate your existing SR-Code and Membership No.
+                </span>
+              </div>
             </div>
           </div>
         )}
@@ -160,7 +178,7 @@ export default function CardPage() {
           <div className="card-info-grid glass">
             <InfoItem label="Full Name"      value={member.fullName} />
             <InfoItem label="SR-Code"        value={member.studentId} mono />
-            <InfoItem label="Course"         value={member.course} />
+            <InfoItem label="Program"        value={member.program || member.course} />
             <InfoItem label="Year Level"     value={member.yearLevel} />
             <InfoItem label="Membership No." value={member.membershipNumber} gold />
             <InfoItem label="School Year"    value={`${member.schoolYear} · ${member.semester}`} />

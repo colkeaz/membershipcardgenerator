@@ -101,7 +101,7 @@ export default function VerifyPage() {
               <div className="verify-member-info">
                 <InfoRow label="Member Name"   value={member.fullName} />
                 <InfoRow label="SR-Code"       value={member.studentId} mono />
-                <InfoRow label="Course"        value={member.course} />
+                <InfoRow label="Program"       value={member.program || member.course} />
                 <InfoRow label="Year Level"    value={member.yearLevel} />
                 <InfoRow label="Membership No." value={member.membershipNumber} gold />
                 <InfoRow label="School Year"   value={`${member.schoolYear} · ${member.semester}`} />
@@ -115,14 +115,17 @@ export default function VerifyPage() {
               <div className="verify-icon-wrap verify-icon-inactive">
                 <AlertTriangle size={48} />
               </div>
-              <h1 className="verify-heading">Membership Inactive</h1>
+              <h1 className="verify-heading">Membership Inactive / Expired</h1>
               <p className="verify-desc">
-                This card belongs to a real member but their membership is currently inactive.
+                This card belongs to a verified member, but their membership is currently inactive for this semester.
               </p>
               <div className="verify-member-info">
-                <InfoRow label="Member Name"   value={member.fullName} />
-                <InfoRow label="Membership No." value={member.membershipNumber} />
-                <InfoRow label="Status"        value="INACTIVE" warn />
+                <InfoRow label="Member Name"    value={member.fullName} />
+                <InfoRow label="SR-Code"        value={member.studentId} mono />
+                <InfoRow label="Program"        value={member.program || member.course} />
+                <InfoRow label="Membership No." value={member.membershipNumber} gold />
+                <InfoRow label="Last Active Term" value={`${member.schoolYear} · ${member.semester}`} />
+                <InfoRow label="Status"         value="INACTIVE / EXPIRED" warn />
               </div>
             </div>
           )}
