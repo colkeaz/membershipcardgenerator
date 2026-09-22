@@ -20,7 +20,7 @@ export const CardFront = React.forwardRef(function CardFront({ member, isPreview
           <img src="/logo.jpg" alt="SSC-AL" className="card-logo" />
           <div className="card-org-text">
             <span className="card-org-name">SUPREME STUDENT COUNCIL</span>
-            <span className="card-org-campus">Alangilan Campus · BatStateU</span>
+            <span className="card-org-campus">Alangilan Campus · Batangas State University The National Engineering University</span>
           </div>
         </div>
         <span className="card-member-badge">MEMBER</span>
@@ -91,7 +91,7 @@ export const CardBack = React.forwardRef(function CardBack({ qrDataUrl, isPrevie
             </div>
           )}
         </div>
-        <p className="card-verify-label">SCAN TO VERIFY AUTHENTICITY</p>
+        <p className="card-verify-label">QR Scan</p>
         <p className="card-verify-sub">Official SSC-AL Digital Membership Card</p>
       </div>
 
@@ -100,7 +100,7 @@ export const CardBack = React.forwardRef(function CardBack({ qrDataUrl, isPrevie
         <img src="/logo.jpg" alt="SSC-AL" className="card-back-logo" />
         <div className="card-back-brand">
           <span className="card-back-org">SSC · Alangilan Campus</span>
-          <span className="card-back-uni">Batangas State University</span>
+          <span className="card-back-uni">Batangas State University The National Engineering University</span>
         </div>
       </div>
 
@@ -121,7 +121,7 @@ export const CardBack = React.forwardRef(function CardBack({ qrDataUrl, isPrevie
    INTERACTIVE FLIP CARD
    ───────────────────────────────────────────── */
 export default function MembershipCard({ member, qrDataUrl, autoFlip = false, isPreview = false }) {
-  const [flipped, setFlipped]   = useState(false);
+  const [flipped, setFlipped] = useState(false);
   const [showHint, setShowHint] = useState(true);
 
   // Hide the "click to flip" hint after 3s
@@ -133,9 +133,9 @@ export default function MembershipCard({ member, qrDataUrl, autoFlip = false, is
   // Auto-flip loop for landing page preview
   useEffect(() => {
     if (!autoFlip) return;
-    const flip   = setTimeout(() => setFlipped(true),  2000);
+    const flip = setTimeout(() => setFlipped(true), 2000);
     const unflip = setTimeout(() => setFlipped(false), 5000);
-    const repeat = setTimeout(() => {}, 8000); // reset handled by re-render
+    const repeat = setTimeout(() => { }, 8000); // reset handled by re-render
     return () => { clearTimeout(flip); clearTimeout(unflip); clearTimeout(repeat); };
   }, [autoFlip]);
 
@@ -156,7 +156,7 @@ export default function MembershipCard({ member, qrDataUrl, autoFlip = false, is
       >
         <div className={`card-inner ${flipped ? 'is-flipped' : ''}`}>
           <CardFront member={member} isPreview={isPreview} />
-          <CardBack  qrDataUrl={qrDataUrl} isPreview={isPreview} />
+          <CardBack qrDataUrl={qrDataUrl} isPreview={isPreview} />
         </div>
       </div>
     </div>
