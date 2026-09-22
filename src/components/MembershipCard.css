@@ -18,7 +18,12 @@
   animation: fadeHint 0.5s ease 2.5s forwards;
   opacity: 1;
 }
-@keyframes fadeHint { to { opacity: 0; } }
+
+@keyframes fadeHint {
+  to {
+    opacity: 0;
+  }
+}
 
 .card-scene {
   perspective: 1200px;
@@ -27,6 +32,7 @@
   cursor: pointer;
   outline: none;
 }
+
 .card-scene:focus-visible {
   outline: 2px solid var(--color-gold);
   outline-offset: 6px;
@@ -54,17 +60,17 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   box-shadow:
-    0 20px 60px rgba(143,0,0,0.45),
-    0 4px 16px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(255,255,255,0.08);
+    0 20px 60px rgba(143, 0, 0, 0.45),
+    0 4px 16px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: box-shadow 0.35s ease;
 }
 
 .card-scene:hover .card-face {
   box-shadow:
-    0 30px 80px rgba(143,0,0,0.6),
-    0 8px 24px rgba(0,0,0,0.7),
-    inset 0 1px 0 rgba(255,255,255,0.12);
+    0 30px 80px rgba(143, 0, 0, 0.6),
+    0 8px 24px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 /* ══════════════════════════════
@@ -86,21 +92,21 @@
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle at 80% 20%, rgba(255,188,1,0.18) 0%, transparent 35%),
-    radial-gradient(circle at 15% 85%, rgba(209,26,13,0.3) 0%, transparent 40%),
-    linear-gradient(120deg, transparent 35%, rgba(255,188,1,0.08) 48%, rgba(255,188,1,0.12) 50%, transparent 62%),
-    repeating-linear-gradient(
-      45deg,
+    radial-gradient(circle at 80% 20%, rgba(255, 188, 1, 0.18) 0%, transparent 35%),
+    radial-gradient(circle at 15% 85%, rgba(209, 26, 13, 0.3) 0%, transparent 40%),
+    linear-gradient(120deg, transparent 35%, rgba(255, 188, 1, 0.08) 48%, rgba(255, 188, 1, 0.12) 50%, transparent 62%),
+    repeating-linear-gradient(45deg,
       transparent, transparent 18px,
-      rgba(255,255,255,0.015) 18px, rgba(255,255,255,0.015) 19px
-    );
+      rgba(255, 255, 255, 0.015) 18px, rgba(255, 255, 255, 0.015) 19px);
   pointer-events: none;
 }
 
 /* Vertical left accent bar */
 .card-left-accent {
   position: absolute;
-  left: 0; top: 0; bottom: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: 5px;
   background: linear-gradient(to bottom, #FFBC01, #FFD45E 50%, #FFBC01);
 }
@@ -108,7 +114,9 @@
 /* Bottom gold stripe */
 .card-gold-stripe {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 4px;
   background: linear-gradient(90deg, #FFBC01, #FFD45E, #FFBC01);
 }
@@ -117,7 +125,8 @@
 .card-top {
   position: absolute;
   top: 16px;
-  left: 18px; right: 18px;
+  left: 18px;
+  right: 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -133,11 +142,12 @@
 }
 
 .card-logo {
-  width: 40px; height: 40px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(255,188,1,0.55);
-  box-shadow: 0 0 12px rgba(255,188,1,0.2);
+  border: 2px solid rgba(255, 188, 1, 0.55);
+  box-shadow: 0 0 12px rgba(255, 188, 1, 0.2);
   flex-shrink: 0;
 }
 
@@ -161,7 +171,7 @@
 
 .card-org-campus {
   font-size: 0.54rem;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
@@ -170,8 +180,8 @@
   font-size: 0.55rem;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: rgba(255,188,1,0.85);
-  border: 1px solid rgba(255,188,1,0.3);
+  color: rgba(255, 188, 1, 0.85);
+  border: 1px solid rgba(255, 188, 1, 0.3);
   border-radius: 3px;
   padding: 2px 6px;
   flex-shrink: 0;
@@ -182,7 +192,8 @@
 .card-body {
   position: absolute;
   top: 80px;
-  left: 18px; right: 18px;
+  left: 18px;
+  right: 18px;
   display: flex;
   align-items: flex-start;
   gap: 14px;
@@ -190,11 +201,12 @@
 
 /* EMV chip */
 .card-chip {
-  width: 40px; height: 30px;
+  width: 40px;
+  height: 30px;
   border-radius: 5px;
   background: linear-gradient(135deg, #FFBC01 0%, #d4930a 50%, #FFBC01 100%);
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -206,11 +218,12 @@
   grid-template-rows: 1fr 1fr;
   grid-template-columns: 1fr 1fr;
   gap: 3px;
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .chip-grid span {
-  background: rgba(120,70,0,0.4);
+  background: rgba(120, 70, 0, 0.4);
   border-radius: 1px;
 }
 
@@ -229,7 +242,7 @@
   color: #fff;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -238,19 +251,19 @@
 
 .card-sr-code {
   font-size: 0.7rem;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   letter-spacing: 0.03em;
 }
 
 .card-sr-value {
   font-family: 'Inter', monospace;
   font-weight: 600;
-  color: rgba(255,188,1,0.9);
+  color: rgba(255, 188, 1, 0.9);
 }
 
 .card-course {
   font-size: 0.64rem;
-  color: rgba(255,188,1,0.8);
+  color: rgba(255, 188, 1, 0.8);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -261,22 +274,27 @@
 .card-footer {
   position: absolute;
   bottom: 14px;
-  left: 18px; right: 18px;
+  left: 18px;
+  right: 18px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
 }
 
-.card-footer-left, .card-footer-right {
+.card-footer-left,
+.card-footer-right {
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
-.card-footer-right { align-items: flex-end; }
+
+.card-footer-right {
+  align-items: flex-end;
+}
 
 .card-label {
   font-size: 0.5rem;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 600;
@@ -299,7 +317,7 @@
 
 .card-expiry {
   font-size: 0.55rem;
-  color: rgba(255,188,1,0.55);
+  color: rgba(255, 188, 1, 0.55);
   margin-top: 1px;
 }
 
@@ -323,18 +341,21 @@
 /* Magnetic stripe */
 .card-mag-stripe {
   position: absolute;
-  top: 32px; left: 0; right: 0;
+  top: 32px;
+  left: 0;
+  right: 0;
   height: 44px;
   background: linear-gradient(180deg, #1f0505 0%, #0d0101 50%, #1f0505 100%);
-  border-top: 1px solid rgba(255,188,1,0.25);
-  border-bottom: 1px solid rgba(255,188,1,0.25);
+  border-top: 1px solid rgba(255, 188, 1, 0.25);
+  border-bottom: 1px solid rgba(255, 188, 1, 0.25);
 }
 
 /* QR section */
 .card-back-body {
   position: absolute;
   top: 88px;
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -342,21 +363,23 @@
 }
 
 .card-qr-frame {
-  background: rgba(255,248,240,0.98);
+  background: rgba(255, 248, 240, 0.98);
   border-radius: 10px;
   padding: 6px;
   border: 2px solid #FFBC01;
-  box-shadow: 0 4px 20px rgba(255,188,1,0.25), 0 2px 10px rgba(0,0,0,0.6);
+  box-shadow: 0 4px 20px rgba(255, 188, 1, 0.25), 0 2px 10px rgba(0, 0, 0, 0.6);
 }
 
 .card-qr-img {
-  width: 90px; height: 90px;
+  width: 90px;
+  height: 90px;
   display: block;
   border-radius: 4px;
 }
 
 .card-qr-placeholder {
-  width: 90px; height: 90px;
+  width: 90px;
+  height: 90px;
   border-radius: 4px;
   background: #fff8f0;
   overflow: hidden;
@@ -366,47 +389,39 @@
 .qr-shimmer {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 25%, rgba(255,188,1,0.15) 50%, transparent 75%);
+  background: linear-gradient(90deg, transparent 25%, rgba(255, 188, 1, 0.15) 50%, transparent 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
 @keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
-.card-verify-label {
-  font-size: 0.55rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: rgba(255,188,1,0.85);
-  text-transform: uppercase;
-  text-align: center;
-}
-
-.card-verify-sub {
-  font-size: 0.52rem;
-  color: rgba(255,255,255,0.35);
-  text-align: center;
-  letter-spacing: 0.04em;
-}
 
 /* Bottom branding */
 .card-back-footer {
   position: absolute;
   bottom: 12px;
-  left: 14px; right: 14px;
+  left: 14px;
+  right: 14px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .card-back-logo {
-  width: 26px; height: 26px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(255,188,1,0.35);
+  border: 1px solid rgba(255, 188, 1, 0.35);
   flex-shrink: 0;
 }
 
@@ -420,14 +435,14 @@
 .card-back-org {
   font-size: 0.62rem;
   font-weight: 700;
-  color: rgba(255,188,1,0.8);
+  color: rgba(255, 188, 1, 0.8);
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
 .card-back-uni {
   font-size: 0.52rem;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255, 255, 255, 0.35);
   letter-spacing: 0.03em;
 }
 
@@ -440,7 +455,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(1px);
   pointer-events: none;
 }
@@ -449,12 +464,12 @@
   font-size: 2.2rem;
   font-weight: 900;
   letter-spacing: 0.3em;
-  color: rgba(255,188,1,0.5);
-  border: 2px solid rgba(255,188,1,0.3);
+  color: rgba(255, 188, 1, 0.5);
+  border: 2px solid rgba(255, 188, 1, 0.3);
   padding: 4px 18px;
   border-radius: 6px;
   transform: rotate(-15deg);
-  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
 /* ─── Responsive ─── */
@@ -463,5 +478,8 @@
     width: calc(100vw - 48px);
     height: calc((100vw - 48px) * 0.631);
   }
-  .card-member-name { font-size: 0.82rem; }
+
+  .card-member-name {
+    font-size: 0.82rem;
+  }
 }

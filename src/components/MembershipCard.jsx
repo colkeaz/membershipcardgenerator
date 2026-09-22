@@ -91,8 +91,6 @@ export const CardBack = React.forwardRef(function CardBack({ qrDataUrl, isPrevie
             </div>
           )}
         </div>
-        <p className="card-verify-label">QR Scan</p>
-        <p className="card-verify-sub">Official SSC-AL Digital Membership Card</p>
       </div>
 
       {/* Bottom branding */}
