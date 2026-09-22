@@ -26,13 +26,7 @@ function AppRoutes() {
     <>
       <Navbar />
       <Routes>
-        <Route path="/" element={
-          user
-            ? member
-              ? <Navigate to="/card" replace />
-              : <Navigate to="/register" replace />
-            : <Landing />
-        } />
+        <Route path="/" element={<Landing />} />
         <Route path="/register" element={
           <ProtectedRoute>
             {member ? <Navigate to="/card" replace /> : <Register />}
@@ -40,7 +34,7 @@ function AppRoutes() {
         } />
         <Route path="/card" element={
           <ProtectedRoute>
-            <CardPage />
+            {!member ? <Navigate to="/register" replace /> : <CardPage />}
           </ProtectedRoute>
         } />
         <Route path="/admin" element={

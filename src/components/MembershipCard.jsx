@@ -20,7 +20,7 @@ export const CardFront = React.forwardRef(function CardFront({ member, isPreview
           <img src="/logo.jpg" alt="SSC-AL" className="card-logo" />
           <div className="card-org-text">
             <span className="card-org-name">SUPREME STUDENT COUNCIL</span>
-            <span className="card-org-campus">Alangilan Campus · Batangas State University The National Engineering University</span>
+            <span className="card-org-campus">Batangas State University The National Engineering University</span>
           </div>
         </div>
         <span className="card-member-badge">MEMBER</span>
@@ -91,6 +91,7 @@ export const CardBack = React.forwardRef(function CardBack({ qrDataUrl, isPrevie
             </div>
           )}
         </div>
+
       </div>
 
       {/* Bottom branding */}
