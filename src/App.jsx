@@ -11,6 +11,7 @@ import CardPage from './pages/CardPage';
 import AdminDashboard from './pages/AdminDashboard';
 import VerifyPage from './pages/VerifyPage';
 import Benefits from './pages/Benefits';
+import OfficeRegistration from './pages/OfficeRegistration';
 
 function AppRoutes() {
   const { user, member, loading } = useAuth();
@@ -50,6 +51,9 @@ function AppRoutes() {
         <Route path="/verify" element={<VerifyPage />} />
         {/* Public — Benefits page accessible to everyone */}
         <Route path="/benefits" element={<Benefits />} />
+        {/* Public — In-person office registration instructions */}
+        <Route path="/office-registration" element={<OfficeRegistration />} />
+        <Route path="/manual-registration" element={<Navigate to="/office-registration" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Footer />

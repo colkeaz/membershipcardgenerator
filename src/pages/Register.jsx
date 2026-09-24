@@ -118,11 +118,12 @@ export default function Register() {
     }
   }, [form, user, refreshMember, toast, navigate]);
 
-  /* Step 2b: User declined — close modal, halt registration */
+  /* Step 2b: User confirmed decline — redirect to face-to-face office registration */
   const handleDeclinePrivacy = useCallback(() => {
     setShowPrivacyModal(false);
-    toast('You must accept the Data Privacy terms to register.', 'info');
-  }, [toast]);
+    toast('Online registration declined. Please proceed to the SSC-AL office in person.', 'info');
+    navigate('/office-registration');
+  }, [navigate, toast]);
 
   return (
     <main className="register-page">

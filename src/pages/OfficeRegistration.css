@@ -1,0 +1,301 @@
+/* ═══════════════════════════════════════════════
+   OFFICE / FACE-TO-FACE REGISTRATION PAGE
+   ═══════════════════════════════════════════════ */
+
+.office-reg-page {
+  min-height: calc(100vh - 72px);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  overflow: hidden;
+}
+
+.office-reg-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 65% 55% at 50% 15%, rgba(143, 0, 0, 0.22) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 85% 75%, rgba(255, 188, 1, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 35% 35% at 15% 85%, rgba(143, 0, 0, 0.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.office-reg-container {
+  max-width: 860px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.office-reg-card {
+  padding: 44px 40px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  animation: officeCardFadeIn 0.4s ease-out;
+}
+
+@keyframes officeCardFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.office-reg-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.office-reg-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.office-reg-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(143, 0, 0, 0.35), rgba(255, 188, 1, 0.12));
+  border: 1px solid rgba(255, 188, 1, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gold);
+  margin: 0 auto 20px;
+  box-shadow: 0 0 32px rgba(255, 188, 1, 0.15);
+}
+
+.office-reg-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 12px;
+  line-height: 1.25;
+}
+
+.office-reg-subtitle {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  max-width: 620px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Notice Banner */
+.office-notice-box {
+  background: rgba(143, 0, 0, 0.12);
+  border-left: 4px solid var(--color-accent);
+  padding: 16px 20px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  margin-bottom: 32px;
+}
+
+.office-notice-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fca5a5;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.office-notice-desc {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* Info Grid */
+.office-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-bottom: 36px;
+}
+
+.office-info-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 22px 20px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.office-info-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 188, 1, 0.3);
+}
+
+.office-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.office-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 188, 1, 0.08);
+  border: 1px solid rgba(255, 188, 1, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gold);
+}
+
+.office-card-title {
+  font-family: var(--font-display);
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.office-card-content {
+  font-size: 0.86rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.office-req-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.office-req-list li {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 6px;
+  font-size: 0.84rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.office-req-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--color-gold);
+  font-weight: bold;
+}
+
+/* Steps Section */
+.office-steps-section {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 36px;
+}
+
+.office-steps-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 16px;
+}
+
+.office-steps-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.office-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.office-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.office-step-text {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* Action Buttons */
+.office-reg-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 28px;
+}
+
+.office-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.office-reg-note {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+  text-align: center;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 680px) {
+  .office-reg-card {
+    padding: 30px 20px;
+  }
+
+  .office-info-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .office-steps-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .office-btn-group {
+    flex-direction: column;
+  }
+
+  .office-btn-group .btn {
+    width: 100%;
+  }
+}
