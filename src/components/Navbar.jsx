@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, CreditCard, LayoutDashboard } from 'lucide-react';
+import { LogOut, CreditCard, LayoutDashboard, Gift } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import './Navbar.css';
 
@@ -22,13 +22,21 @@ export default function Navbar() {
     <nav className="navbar" role="navigation" aria-label="Main navigation">
       <div className="container navbar-inner">
         {/* Brand - navigates to landing page */}
-        <Link to="/" className="navbar-brand" id="nav-brand" title="Home">
+        <Link to="/benefits" className="navbar-brand" id="nav-brand" title="Benefits">
           <img src="/logo.jpg" alt="SSC-AL" className="navbar-logo" />
           <span className="navbar-title">SSC<span className="navbar-title-accent">-AL</span></span>
         </Link>
 
         {/* Navigation links */}
         <div className="navbar-links">
+          <Link
+            to="/benefits"
+            id="nav-benefits"
+            className={`navbar-link ${location.pathname === '/benefits' ? 'active' : ''}`}
+          >
+            <Gift size={16} />
+            <span>Benefits</span>
+          </Link>
           <Link
             to="/card"
             id="nav-card"

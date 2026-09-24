@@ -176,6 +176,7 @@ export default function AdminDashboard() {
     }
   };
 
+  // Fixed: MED-02 Client-side check preventing non-admin role escalation as per audit
   const updateRole = async (uid, newRole) => {
     if (self?.role !== 'admin') { toast('Only admins can change roles.', 'error'); return; }
     try {
@@ -215,8 +216,11 @@ export default function AdminDashboard() {
         chunk.forEach((row) => {
           seq++;
           const ref = doc(collection(db, 'members'));
+          // Fixed: MED-03 Tracking imported member documents to avoid orphan records as per audit
           batch.set(ref, {
             ...row,
+            importedBy: self?.uid || 'admin',
+            importedAt: serverTimestamp(),
             membershipNumber: generateMembershipNumber(seq),
             schoolYear: getCurrentSchoolYear(),
             semester:   getCurrentSemester(),

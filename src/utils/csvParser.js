@@ -1,5 +1,20 @@
 import Papa from 'papaparse';
-import { generateMembershipNumber, getCurrentSchoolYear, getCurrentSemester } from './memberNumber';
+import { generateMembershipNumber, getCurrentSchoolYear, getCurrentSemester } from './memberNumber.js';
+
+/**
+ * Fixed: MED-03 CSV Import Injection Risk as per audit
+ * Strips formula-injection prefixes (=, +, -, @, tabs, carriage returns)
+ * and truncates fields to avoid excessive payload storage.
+ */
+export function sanitizeCsvField(val, maxLen = 200) {
+  if (typeof val !== 'string') return '';
+  // Strip leading formula execution characters
+  let clean = val.trim().replace(/^[=+\-@\t\r]+/, '');
+  // Strip dangerous angle brackets to mitigate script/HTML storage
+  clean = clean.replace(/[<>]/g, '');
+  // Enforce maximum length limit
+  return clean.slice(0, maxLen);
+}
 
 /**
  * Parse a CSV file and return an array of member objects.
@@ -18,13 +33,19 @@ export function parseCSV(file) {
           return;
         }
         const members = result.data.map((row, i) => {
-          const prog = row.program || row.course || '';
+          // Fixed: MED-03 Sanitize each incoming field from CSV
+          const rawName = row.fullname || row['full name'] || row.name || '';
+          const rawSid  = row.studentid || row['student id'] || row.id || '';
+          const rawProg = row.program || row.course || '';
+          const rawYear = row.yearlevel || row['year level'] || row.year || '';
+
+          const prog = sanitizeCsvField(rawProg, 100);
           return {
-            fullName:         row.fullname || row['full name'] || row.name || '',
-            studentId:        row.studentid || row['student id'] || row.id || '',
+            fullName:         sanitizeCsvField(rawName, 100),
+            studentId:        sanitizeCsvField(rawSid, 20),
             program:          prog,
             course:           prog,
-            yearLevel:        row.yearlevel || row['year level'] || row.year || '',
+            yearLevel:        sanitizeCsvField(rawYear, 20),
             membershipNumber: generateMembershipNumber(i + 1),
             schoolYear:       getCurrentSchoolYear(),
             semester:         getCurrentSemester(),

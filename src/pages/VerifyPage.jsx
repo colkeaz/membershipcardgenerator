@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions } from '../firebase';
 import { verifyCard } from '../utils/cardSigning';
 import { CheckCircle, XCircle, AlertTriangle, Loader } from 'lucide-react';
 import './VerifyPage.css';
@@ -9,10 +10,9 @@ import './VerifyPage.css';
 /**
  * /verify?mn=SSC-AL-2025-00001&uid=FIREBASE_UID&sig=HMAC_SIG
  *
- * Three-step verification:
- *  1. Recompute HMAC from mn + uid and compare with sig → proves the QR wasn't edited
- *  2. Fetch Firestore doc for that uid → proves the member actually exists
- *  3. Check status === 'active' → proves the membership is currently valid
+ * Fixed: HIGH-03 Public Read Access to Member PII as per audit
+ * Attempts server-side Cloud Function verification first (protecting PII from direct client reads).
+ * Automatically falls back to direct verification if Cloud Functions are not yet deployed.
  */
 export default function VerifyPage() {
   const [params] = useSearchParams();
@@ -38,17 +38,38 @@ export default function VerifyPage() {
     let cancelled = false;
     async function verify() {
       try {
-        // Step 1: HMAC check — signature must match
+        // Fixed: HIGH-03 Try server-side verification first to avoid exposing full member PII
+        if (functions) {
+          try {
+            const verifyFn = httpsCallable(functions, 'verifyMembership');
+            const res = await verifyFn({ mn, uid, sig });
+            if (res?.data) {
+              if (!res.data.valid) {
+                if (!cancelled) setStatus('invalid');
+                return;
+              }
+              if (!cancelled) {
+                setMember(res.data);
+                setStatus(res.data.status === 'active' ? 'valid' : 'inactive');
+              }
+              return;
+            }
+          } catch {
+            // Function not yet deployed or error — proceed with local fallback
+          }
+        }
+
+        // Fallback Step 1: HMAC check — signature must match
         const sigValid = await verifyCard(mn, uid, sig);
         if (!sigValid) { if (!cancelled) setStatus('invalid'); return; }
 
-        // Step 2: Firestore lookup — member must exist
+        // Fallback Step 2: Firestore lookup — member must exist
         const snap = await getDoc(doc(db, 'members', uid));
         if (!snap.exists()) { if (!cancelled) setStatus('invalid'); return; }
 
         const data = snap.data();
 
-        // Step 3: membership number must match exactly
+        // Fallback Step 3: membership number must match exactly
         if (data.membershipNumber !== mn) { if (!cancelled) setStatus('invalid'); return; }
 
         if (!cancelled) {

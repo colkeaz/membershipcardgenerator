@@ -1,3 +1,10 @@
 node_modules/
+functions/node_modules/
 dist/
 .firebase/
+
+# Fixed: CRIT-01 .env committed to Git as per audit
+.env
+.env.local
+.env.*.local
+

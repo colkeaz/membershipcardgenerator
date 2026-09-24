@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import MembershipCard from '../components/MembershipCard';
 import { Chrome } from 'lucide-react';
@@ -59,11 +59,13 @@ export default function Landing() {
         {/* Header - shown only when not signed in (when signed in, top Navbar is present) */}
         {!user && (
           <header className="landing-header">
-            <img src="/logo.jpg" alt="SSC-AL Logo" className="landing-logo" />
-            <div className="landing-org">
-              <span className="landing-org-name">SUPREME STUDENT COUNCIL</span>
-              <span className="landing-org-campus">Alangilan Campus · Batangas State University</span>
-            </div>
+            <Link to="/benefits" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
+              <img src="/logo.jpg" alt="SSC-AL Logo" className="landing-logo" />
+              <div className="landing-org">
+                <span className="landing-org-name">SUPREME STUDENT COUNCIL</span>
+                <span className="landing-org-campus">Alangilan Campus · Batangas State University</span>
+              </div>
+            </Link>
           </header>
         )}
 
@@ -119,12 +121,7 @@ export default function Landing() {
           </div>
         )}
 
-        {/* Footer */}
-        <footer className="landing-footer">
-          <span>BatStateU · Alangilan Campus · SSC-AL</span>
-          <span>·</span>
-          <span>Official Membership System</span>
-        </footer>
+
       </div>
     </main>
   );

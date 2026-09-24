@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../components/ToastProvider';
 import { generateMembershipNumber, getCurrentSchoolYear, getCurrentSemester } from '../utils/memberNumber';
+// Fixed: MED-01 Missing Input Sanitization on Registration as per audit
+import { validateFullName, validateStudentId, sanitizeInput } from '../utils/validators';
 import { UserCheck, BookOpen, GraduationCap, Hash } from 'lucide-react';
+import PrivacyConsentModal from '../components/PrivacyConsentModal';
 import './Register.css';
 
 const YEAR_LEVELS = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
@@ -34,15 +37,21 @@ export default function Register() {
     course:    '',
     yearLevel: '',
   });
-  const [loading, setLoading] = useState(false);
-  const [errors,  setErrors]  = useState({});
+  const [loading, setLoading]           = useState(false);
+  const [errors,  setErrors]            = useState({});
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
+  // Fixed: MED-01 Missing Input Sanitization on Registration as per audit
   const validate = () => {
     const e = {};
-    if (!form.fullName.trim())  e.fullName  = 'Full name is required';
-    if (!form.studentId.trim()) e.studentId = 'Student ID is required';
-    if (!form.course)           e.course    = 'Please select your program';
-    if (!form.yearLevel)        e.yearLevel = 'Please select your year level';
+    const nameErr = validateFullName(form.fullName);
+    if (nameErr) e.fullName = nameErr;
+
+    const idErr = validateStudentId(form.studentId);
+    if (idErr) e.studentId = idErr;
+
+    if (!form.course)    e.course    = 'Please select your program';
+    if (!form.yearLevel) e.yearLevel = 'Please select your year level';
     return e;
   };
 
@@ -52,16 +61,25 @@ export default function Register() {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleSubmit = async (e) => {
+  /* Step 1: Validate form fields, then open the privacy consent modal */
+  const handleSubmit = (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
+    setShowPrivacyModal(true);
+  };
 
+  /* Step 2a: User accepted — proceed with the actual registration */
+  const handleAcceptPrivacy = useCallback(async () => {
     setLoading(true);
     try {
       // Use a counter doc to get the next sequence number atomically
       const counterRef = doc(db, 'org', 'memberCounter');
       const memberRef  = doc(db, 'members', user.uid);
+
+      // Fixed: MED-01 Sanitize inputs before persisting to Firestore
+      const cleanFullName  = sanitizeInput(form.fullName, 100);
+      const cleanStudentId = sanitizeInput(form.studentId, 20);
 
       let membershipNumber;
       await runTransaction(db, async (tx) => {
@@ -72,8 +90,8 @@ export default function Register() {
         tx.set(memberRef, {
           uid:              user.uid,
           email:            user.email,
-          fullName:         form.fullName.trim(),
-          studentId:        form.studentId.trim(),
+          fullName:         cleanFullName,
+          studentId:        cleanStudentId,
           program:          form.course,
           course:           form.course,
           yearLevel:        form.yearLevel,
@@ -82,6 +100,8 @@ export default function Register() {
           semester:         getCurrentSemester(),
           status:           'pending',
           role:             'member',
+          privacyConsent:   true,
+          privacyConsentAt: serverTimestamp(),
           createdAt:        serverTimestamp(),
         });
       });
@@ -94,8 +114,15 @@ export default function Register() {
       toast('Registration failed. Please try again.', 'error');
     } finally {
       setLoading(false);
+      setShowPrivacyModal(false);
     }
-  };
+  }, [form, user, refreshMember, toast, navigate]);
+
+  /* Step 2b: User declined — close modal, halt registration */
+  const handleDeclinePrivacy = useCallback(() => {
+    setShowPrivacyModal(false);
+    toast('You must accept the Data Privacy terms to register.', 'info');
+  }, [toast]);
 
   return (
     <main className="register-page">
@@ -204,6 +231,14 @@ export default function Register() {
           </p>
         </div>
       </div>
+
+      {/* Data Privacy Consent Modal */}
+      <PrivacyConsentModal
+        isOpen={showPrivacyModal}
+        onAccept={handleAcceptPrivacy}
+        onDecline={handleDeclinePrivacy}
+        loading={loading}
+      />
     </main>
   );
 }

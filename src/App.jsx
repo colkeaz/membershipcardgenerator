@@ -3,12 +3,14 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { ToastProvider } from './components/ToastProvider';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 import Landing from './pages/Landing';
 import Register from './pages/Register';
 import CardPage from './pages/CardPage';
 import AdminDashboard from './pages/AdminDashboard';
 import VerifyPage from './pages/VerifyPage';
+import Benefits from './pages/Benefits';
 
 function AppRoutes() {
   const { user, member, loading } = useAuth();
@@ -46,8 +48,11 @@ function AppRoutes() {
         } />
         {/* Public — no auth needed to scan and verify a card */}
         <Route path="/verify" element={<VerifyPage />} />
+        {/* Public — Benefits page accessible to everyone */}
+        <Route path="/benefits" element={<Benefits />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <Footer />
     </>
   );
 }

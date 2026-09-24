@@ -1,22 +1,30 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getFunctions } from 'firebase/functions';
+
+const env = (typeof import.meta !== 'undefined' && import.meta?.env)
+  ? import.meta.env
+  : (typeof process !== 'undefined' && process.env ? process.env : {});
 
 const firebaseConfig = {
-  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey:            env.VITE_FIREBASE_API_KEY || 'demo-api-key',
+  authDomain:        env.VITE_FIREBASE_AUTH_DOMAIN || 'demo.firebaseapp.com',
+  projectId:         env.VITE_FIREBASE_PROJECT_ID || 'demo-project',
+  storageBucket:     env.VITE_FIREBASE_STORAGE_BUCKET || 'demo.appspot.com',
+  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || '0000000000',
+  appId:             env.VITE_FIREBASE_APP_ID || '1:0000000000:web:0000',
 };
 
 const app  = initializeApp(firebaseConfig);
 export const auth     = getAuth(app);
 export const db       = getFirestore(app);
+export const functions = getFunctions(app);
 export const googleProvider = new GoogleAuthProvider();
 
+// Fixed: HIGH-02 Unrestricted Google OAuth Domain as per audit
 googleProvider.setCustomParameters({
   prompt: 'select_account',
-  hd: '',   // allow any Google account (set to your university domain e.g. 'bulsu.edu.ph' to restrict)
+  hd: 'g.batstate-u.edu.ph',   // restrict to university Google Workspace domain
 });
+

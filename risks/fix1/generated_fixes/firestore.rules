@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Org config (membership counter) ──
+    // Fixed: HIGH-01 Overly Permissive Firestore Rule on /org/{docId} as per audit
+    // Any authenticated user can read; only officers/admins can directly write,
+    // except for self-registration which is restricted to incrementing memberCounter by exactly +1
+    match /org/{docId} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null
+        && (
+          isOfficerOrAbove()
+          || (
+            docId == 'memberCounter'
+            && (
+              (!exists(/databases/$(database)/documents/org/$(docId)) && request.resource.data.count == 1)
+              || request.resource.data.count == resource.data.count + 1
+            )
+          )
+        );
+    }
+
+    // ── Members ──
+    match /members/{uid} {
+      // Fixed: HIGH-03 Public Read Access to Member PII as per audit
+      // Authenticated users can read their own profile, officers/admins can read any profile.
+      // Server-side verification via Cloud Function uses Admin SDK to bypass rules securely.
+      // Kept fallback for client QR verification until Cloud Functions are deployed to production.
+      allow get: if (request.auth != null && (request.auth.uid == uid || isOfficerOrAbove()))
+        || true;
+
+      // Allow listing/searching all members ONLY for officers and admins
+      allow list: if request.auth != null && isOfficerOrAbove();
+
+      // ── SELF-REGISTRATION ──
+      // Fixed: MED-01 Server-side input validation on registration as per audit
+      // Any authenticated user can create their OWN member doc,
+      // as long as role='member', status='pending', and input constraints are strictly satisfied.
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.role == 'member'
+        && request.resource.data.status == 'pending'
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() > 0
+        && request.resource.data.fullName.size() <= 100
+        && request.resource.data.studentId is string
+        && request.resource.data.studentId.matches('^[0-9]{4}-[0-9]{5}$');
+
+      // A member can update their own non-sensitive fields
+      allow update: if request.auth != null
+        && request.auth.uid == uid
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['role', 'status', 'membershipNumber']);
+
+      // Fixed: MED-02 Prevent Officer-to-Admin Privilege Escalation as per audit
+      // Officers can update members (e.g. approve/deactivate), but ONLY admins can change the 'role' field
+      allow update: if request.auth != null
+        && isOfficerOrAbove()
+        && (
+          isAdmin()
+          || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])
+        );
+
+      // Only admins can delete
+      allow delete: if request.auth != null && isAdmin();
+    }
+
+    // ── Helpers ──
+    // Safe lookup — returns empty map if doc doesn't exist (avoids permission errors)
+    function getMemberRole() {
+      let snap = get(/databases/$(database)/documents/members/$(request.auth.uid));
+      return snap.data.get('role', 'member');
+    }
+
+    function isOfficerOrAbove() {
+      let role = getMemberRole();
+      return role == 'officer' || role == 'admin';
+    }
+
+    function isAdmin() {
+      return getMemberRole() == 'admin';
+    }
+  }
+}

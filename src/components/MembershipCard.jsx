@@ -12,7 +12,6 @@ export const CardFront = React.forwardRef(function CardFront({ member, isPreview
     <div className="card-face card-face-front" ref={ref}>
       {/* Background layers */}
       <div className="card-bg-pattern" aria-hidden="true" />
-      <div className="card-left-accent" aria-hidden="true" />
 
       {/* Top row */}
       <div className="card-top">
