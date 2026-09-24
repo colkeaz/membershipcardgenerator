@@ -164,7 +164,7 @@ exports.verifyMembership = functions.https.onCall(async (data) => {
 - **Files Modified:** `src/utils/validators.js`, `src/pages/Register.jsx`, `firestore.rules`
 - **Action Taken:**
   1. Enforced regex `/^[A-Za-z\s.\-,ñÑ]+$/` on `fullName` with a 100-character cap.
-  2. Enforced SR-Code format `/^\d{4}-\d{5}$/` on `studentId`.
+  2. Enforced SR-Code format `/^(\d{2}|\d{4})-\d{5}$/` on `studentId` (e.g., `24-00627` or `2024-00627`).
   3. Sanitized inputs with `sanitizeInput` before dispatching transactions to Firestore.
   4. Added server-side schema constraints in `firestore.rules` to prevent API bypassing.
 - **Diff (`firestore.rules`):**
@@ -180,7 +180,7 @@ exports.verifyMembership = functions.https.onCall(async (data) => {
 +    && request.resource.data.fullName.size() > 0
 +    && request.resource.data.fullName.size() <= 100
 +    && request.resource.data.studentId is string
-+    && request.resource.data.studentId.matches('^[0-9]{4}-[0-9]{5}$');
++    && request.resource.data.studentId.matches('^([0-9]{2}|[0-9]{4})-[0-9]{5}$');
 ```
 
 ---

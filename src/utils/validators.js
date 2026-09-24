@@ -6,7 +6,7 @@
  */
 
 export const ALLOWED_NAME_REGEX = /^[A-Za-z\s.\-,ñÑ]+$/;
-export const STUDENT_ID_REGEX = /^\d{4}-\d{5}$/;
+export const STUDENT_ID_REGEX = /^(\d{2}|\d{4})-\d{5}$/;
 export const UNIVERSITY_DOMAIN = 'g.batstate-u.edu.ph';
 
 // Fixed: MED-01 Input validation and sanitization for Full Name
@@ -31,7 +31,7 @@ export function validateStudentId(studentId) {
   }
   const trimmed = studentId.trim();
   if (!STUDENT_ID_REGEX.test(trimmed)) {
-    return 'Format must be 20XX-XXXXX';
+    return 'Format must be YY-XXXXX (e.g. 24-00627)';
   }
   return null;
 }

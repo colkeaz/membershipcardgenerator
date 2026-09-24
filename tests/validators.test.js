@@ -44,8 +44,9 @@ describe('Security Audit — MED-01: Registration Input Sanitization & Validatio
   });
 
   describe('Student ID Validation (validateStudentId)', () => {
-    it('accepts valid student ID formats (20XX-XXXXX)', () => {
-      assert.strictEqual(validateStudentId('2021-12345'), null);
+    it('accepts valid student ID formats (e.g. 24-00627, 21-12345, 2024-00001)', () => {
+      assert.strictEqual(validateStudentId('24-00627'), null);
+      assert.strictEqual(validateStudentId('21-12345'), null);
       assert.strictEqual(validateStudentId('2024-00001'), null);
       assert.strictEqual(validateStudentId('2020-99999'), null);
     });
@@ -57,14 +58,15 @@ describe('Security Audit — MED-01: Registration Input Sanitization & Validatio
     });
 
     it('blocks SQL injection attempts in student ID', () => {
-      const sqli = "2021-12345' OR 1=1--";
-      assert.strictEqual(validateStudentId(sqli), 'Format must be 20XX-XXXXX');
+      const sqli = "24-00627' OR 1=1--";
+      assert.strictEqual(validateStudentId(sqli), 'Format must be YY-XXXXX (e.g. 24-00627)');
     });
 
     it('blocks malformed or arbitrary alphanumeric student IDs', () => {
-      assert.strictEqual(validateStudentId('SR-12345'), 'Format must be 20XX-XXXXX');
-      assert.strictEqual(validateStudentId('2021-ABCDE'), 'Format must be 20XX-XXXXX');
-      assert.strictEqual(validateStudentId('202112345'), 'Format must be 20XX-XXXXX');
+      assert.strictEqual(validateStudentId('SR-12345'), 'Format must be YY-XXXXX (e.g. 24-00627)');
+      assert.strictEqual(validateStudentId('24-ABCDE'), 'Format must be YY-XXXXX (e.g. 24-00627)');
+      assert.strictEqual(validateStudentId('2400627'), 'Format must be YY-XXXXX (e.g. 24-00627)');
+      assert.strictEqual(validateStudentId('2-00627'), 'Format must be YY-XXXXX (e.g. 24-00627)');
     });
   });
 

@@ -24,7 +24,7 @@ describe('Security Audit — Firestore Rules Static Analysis & Policy Checks', (
     assert.ok(rulesContent.includes("request.resource.data.role == 'member'"), 'Role must be locked to member on create');
     assert.ok(rulesContent.includes("request.resource.data.status == 'pending'"), 'Status must be locked to pending on create');
     assert.ok(rulesContent.includes('request.resource.data.fullName.size() <= 100'), 'Must enforce max name length');
-    assert.ok(rulesContent.includes("request.resource.data.studentId.matches('^[0-9]{4}-[0-9]{5}$')"), 'Must enforce SR-Code format');
+    assert.ok(rulesContent.includes("request.resource.data.studentId.matches('^([0-9]{2}|[0-9]{4})-[0-9]{5}$')"), 'Must enforce SR-Code format');
   });
 
   it('MED-02: prevents officers from escalating their own or others role to admin', () => {

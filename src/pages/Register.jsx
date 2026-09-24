@@ -172,7 +172,7 @@ export default function Register() {
                   className={`form-input ${errors.studentId ? 'input-error' : ''}`}
                   value={form.studentId}
                   onChange={handleChange}
-                  placeholder="20XX-XXXXX"
+                  placeholder="24-XXXXX (e.g. 24-00627)"
                 />
                 {errors.studentId && <span className="field-error">{errors.studentId}</span>}
               </div>
