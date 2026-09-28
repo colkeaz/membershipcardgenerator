@@ -9,31 +9,33 @@
 
 ## 1. Executive Summary
 
-This report documents the security remediation applied to the `membershipcardgenerator` repository based on the comprehensive security audit (`SECURITY_AUDIT_REPORT.md`). 
+This report documents the security remediation applied to the `membershipcardgenerator` repository based on the comprehensive security audit (`SECURITY_AUDIT_REPORT.md`).
 
 All 10 findings across Critical, High, Medium, Low, and Informational tiers have been remediated while strictly preserving current application functionality and API compatibility. An automated security test suite comprising 34 test cases was constructed to guarantee that all security boundaries hold against malicious injection, privilege escalation, and tampering.
 
-| Finding ID | Severity | Description | Remediation Status | Verification |
-|---|---|---|---|---|
-| **CRIT-01** | 🔴 Critical | `.env` committed to Git with real secrets | ✅ Patched & Untracked | Tested `.gitignore` policy & Git cache |
-| **CRIT-02** | 🔴 Critical | Client-side HMAC signing secret | ✅ Scaffolded Server Cloud Function + Safe Fallback | Verified HMAC generation & tamper resistance |
-| **HIGH-01** | 🟠 High | Overly permissive `/org/{docId}` Firestore rule | ✅ Patched in `firestore.rules` | Static policy test: +1 increment lock |
-| **HIGH-02** | 🟠 High | Unrestricted Google OAuth Domain | ✅ Patched in `firebase.js` & `validators.js` | Unit test: domain enforcement tests |
-| **HIGH-03** | 🟠 High | Public read access to member PII | ✅ Scaffolded backend verification + rule guards | Unit test: PII stripped from QR response |
-| **MED-01** | 🟡 Medium | Registration input sanitization missing | ✅ Patched in `Register.jsx` & `firestore.rules` | 15 security injection unit tests |
-| **MED-02** | 🟡 Medium | Officer-to-Admin privilege escalation | ✅ Patched in `firestore.rules` & `AdminDashboard.jsx` | Static rule test: role update locked to admin |
-| **MED-03** | 🟡 Medium | CSV import formula injection & orphan docs | ✅ Patched in `csvParser.js` & `AdminDashboard.jsx` | 5 formula injection unit tests |
-| **LOW-01** | 🔵 Low | Missing HTTP security headers | ✅ Patched in `firebase.json` | JSON schema & header compliance test |
-| **INFO-01** | ⚪ Info | Hardcoded fallback HMAC secret | ✅ Patched in `cardSigning.js` | Unit test: missing secret throws error |
+| Finding ID  | Severity    | Description                                     | Remediation Status                                     | Verification                                  |
+| ----------- | ----------- | ----------------------------------------------- | ------------------------------------------------------ | --------------------------------------------- |
+| **CRIT-01** | 🔴 Critical | `.env` committed to Git with real secrets       | ✅ Patched & Untracked                                 | Tested `.gitignore` policy & Git cache        |
+| **CRIT-02** | 🔴 Critical | Client-side HMAC signing secret                 | ✅ Scaffolded Server Cloud Function + Safe Fallback    | Verified HMAC generation & tamper resistance  |
+| **HIGH-01** | 🟠 High     | Overly permissive `/org/{docId}` Firestore rule | ✅ Patched in `firestore.rules`                        | Static policy test: +1 increment lock         |
+| **HIGH-02** | 🟠 High     | Unrestricted Google OAuth Domain                | ✅ Patched in `firebase.js` & `validators.js`          | Unit test: domain enforcement tests           |
+| **HIGH-03** | 🟠 High     | Public read access to member PII                | ✅ Scaffolded backend verification + rule guards       | Unit test: PII stripped from QR response      |
+| **MED-01**  | 🟡 Medium   | Registration input sanitization missing         | ✅ Patched in `Register.jsx` & `firestore.rules`       | 15 security injection unit tests              |
+| **MED-02**  | 🟡 Medium   | Officer-to-Admin privilege escalation           | ✅ Patched in `firestore.rules` & `AdminDashboard.jsx` | Static rule test: role update locked to admin |
+| **MED-03**  | 🟡 Medium   | CSV import formula injection & orphan docs      | ✅ Patched in `csvParser.js` & `AdminDashboard.jsx`    | 5 formula injection unit tests                |
+| **LOW-01**  | 🔵 Low      | Missing HTTP security headers                   | ✅ Patched in `firebase.json`                          | JSON schema & header compliance test          |
+| **INFO-01** | ⚪ Info     | Hardcoded fallback HMAC secret                  | ✅ Patched in `cardSigning.js`                         | Unit test: missing secret throws error        |
 
 ---
 
 ## 2. Detailed Technical Fixes
 
 ### 🔴 CRIT-01: `.env` Untracking and Git Ignore Policy
+
 - **Files Modified:** `.gitignore`, git index cache.
 - **Action Taken:** Added `.env`, `.env.local`, `.env.*.local`, and `functions/node_modules/` to `.gitignore`. Ran `git rm --cached .env` to stop tracking the committed secrets file without removing the developer's local working copy.
 - **Diff:**
+
 ```diff
  node_modules/
 +functions/node_modules/
@@ -49,12 +51,14 @@ All 10 findings across Critical, High, Medium, Low, and Informational tiers have
 ---
 
 ### 🔴 CRIT-02 & ⚪ INFO-01: Anti-Forgery HMAC Signing & Fail-Fast Secret Handling
+
 - **Files Modified:** `src/utils/cardSigning.js`, `functions/index.js`, `functions/package.json`
 - **Action Taken:**
   1. Removed the weak fallback secret `'ssc-al-fallback-dev-secret'`. The code now requires an explicit secret or throws a clear configuration error.
   2. Scaffolded a Firebase Cloud Function (`functions/index.js`) providing server-side `signCard` callable logic where the secret is stored exclusively on the server.
   3. Integrated `src/utils/cardSigning.js` to attempt server-side Cloud Function signing first, automatically falling back to client-side Web Crypto API signing for local development so existing workflows are never broken.
 - **Diff (`src/utils/cardSigning.js`):**
+
 ```diff
 -// Old vulnerable pattern:
 -const SECRET = import.meta.env.VITE_CARD_HMAC_SECRET || 'ssc-al-fallback-dev-secret';
@@ -89,9 +93,11 @@ All 10 findings across Critical, High, Medium, Low, and Informational tiers have
 ---
 
 ### 🟠 HIGH-01: Atomic Lock on `/org/{docId}` Member Counter
+
 - **Files Modified:** `firestore.rules`
 - **Action Taken:** Prohibited arbitrary writes by standard authenticated users. For non-officers, writes to `/org/memberCounter` are strictly limited to self-registration sequence increments of exactly `+1` (or initial set to `1`).
 - **Diff (`firestore.rules`):**
+
 ```diff
  match /org/{docId} {
    allow read:  if request.auth != null;
@@ -114,9 +120,11 @@ All 10 findings across Critical, High, Medium, Low, and Informational tiers have
 ---
 
 ### 🟠 HIGH-02: University Domain Restriction
+
 - **Files Modified:** `src/firebase.js`, `src/utils/validators.js`
 - **Action Taken:** Configured Google OAuth Provider parameters to pre-filter and hint the university domain `g.batstate-u.edu.ph`. Implemented a regex helper `isValidUniversityEmail` in `validators.js`.
 - **Diff (`src/firebase.js`):**
+
 ```diff
 +// Fixed: HIGH-02 Unrestricted Google OAuth Domain as per audit
  googleProvider.setCustomParameters({
@@ -129,18 +137,21 @@ All 10 findings across Critical, High, Medium, Low, and Informational tiers have
 ---
 
 ### 🟠 HIGH-03: Data Privacy Protection (PII Sanitization)
+
 - **Files Modified:** `functions/index.js`, `src/pages/VerifyPage.jsx`, `firestore.rules`
 - **Action Taken:** Created a server-side Cloud Function `verifyMembership` using the Firebase Admin SDK. When a user or officer scans a QR code, the Cloud Function verifies the HMAC signature and returns only non-sensitive verification data (`fullName`, `studentId`, `program`, `yearLevel`, `status`, `membershipNumber`). Sensitive attributes such as email addresses, password hashes, and internal timestamps are never transmitted to public verification callers.
 - **Implementation (`functions/index.js`):**
+
 ```javascript
 // Fixed: HIGH-03 Server-Side QR Verification without exposing member PII
 exports.verifyMembership = functions.https.onCall(async (data) => {
   const { mn, uid, sig } = data;
   const expectedSig = computeServerHmac(mn, uid);
-  if (expectedSig !== sig) return { valid: false, reason: 'Invalid signature' };
+  if (expectedSig !== sig) return { valid: false, reason: "Invalid signature" };
 
   const memberSnap = await admin.firestore().doc(`members/${uid}`).get();
-  if (!memberSnap.exists) return { valid: false, reason: 'Member record not found' };
+  if (!memberSnap.exists)
+    return { valid: false, reason: "Member record not found" };
 
   const memberData = memberSnap.data();
   // Strip email, internal notes, auth metadata
@@ -161,6 +172,7 @@ exports.verifyMembership = functions.https.onCall(async (data) => {
 ---
 
 ### 🟡 MED-01: Registration Input Sanitization & Server Validation
+
 - **Files Modified:** `src/utils/validators.js`, `src/pages/Register.jsx`, `firestore.rules`
 - **Action Taken:**
   1. Enforced regex `/^[A-Za-z\s.\-,ñÑ]+$/` on `fullName` with a 100-character cap.
@@ -168,6 +180,7 @@ exports.verifyMembership = functions.https.onCall(async (data) => {
   3. Sanitized inputs with `sanitizeInput` before dispatching transactions to Firestore.
   4. Added server-side schema constraints in `firestore.rules` to prevent API bypassing.
 - **Diff (`firestore.rules`):**
+
 ```diff
  match /members/{uid} {
 +  // Fixed: MED-01 Server-side input validation on registration as per audit
@@ -186,11 +199,13 @@ exports.verifyMembership = functions.https.onCall(async (data) => {
 ---
 
 ### 🟡 MED-02: Officer-to-Admin Privilege Escalation Prevention
+
 - **Files Modified:** `firestore.rules`, `src/pages/AdminDashboard.jsx`
 - **Action Taken:**
   1. Updated `firestore.rules` so officers cannot change the `role` field. Only users who already possess the `admin` role are permitted to write or modify the `role` attribute.
   2. Reinforced the client-side check in `AdminDashboard.jsx` `updateRole`.
 - **Diff (`firestore.rules`):**
+
 ```diff
 -  // Officers/admins can update any member (approve, deactivate, change role)
 -  allow update: if request.auth != null && isOfficerOrAbove();
@@ -207,15 +222,17 @@ exports.verifyMembership = functions.https.onCall(async (data) => {
 ---
 
 ### 🟡 MED-03: CSV Injection (Formula Execution) Mitigation
+
 - **Files Modified:** `src/utils/csvParser.js`, `src/pages/AdminDashboard.jsx`
 - **Action Taken:** Added `sanitizeCsvField` to strip formula execution triggers (`=`, `+`, `-`, `@`, `\t`, `\r`) from incoming CSV data, neutralize script tags, and cap length to prevent document storage exhaustion. Attached `importedBy` and `importedAt` audit metadata during batch writes.
 - **Implementation (`src/utils/csvParser.js`):**
+
 ```javascript
 // Fixed: MED-03 CSV Import Injection Risk as per audit
 export function sanitizeCsvField(val, maxLen = 200) {
-  if (typeof val !== 'string') return '';
-  let clean = val.trim().replace(/^[=+\-@\t\r]+/, '');
-  clean = clean.replace(/[<>]/g, '');
+  if (typeof val !== "string") return "";
+  let clean = val.trim().replace(/^[=+\-@\t\r]+/, "");
+  clean = clean.replace(/[<>]/g, "");
   return clean.slice(0, maxLen);
 }
 ```
@@ -223,6 +240,7 @@ export function sanitizeCsvField(val, maxLen = 200) {
 ---
 
 ### 🔵 LOW-01: HTTP Security Headers
+
 - **Files Modified:** `firebase.json`
 - **Action Taken:** Configured strict headers on Firebase Hosting:
   - `X-Frame-Options: DENY` (anti-clickjacking)

@@ -22,9 +22,12 @@ export const db       = getFirestore(app);
 export const functions = getFunctions(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Fixed: HIGH-02 Unrestricted Google OAuth Domain as per audit
-googleProvider.setCustomParameters({
-  prompt: 'select_account',
-  hd: 'g.batstate-u.edu.ph',   // restrict to university Google Workspace domain
-});
+// Configure Google OAuth Provider
+// Note: hd is omitted by default so admin and testing accounts can sign in.
+// To strictly restrict Google account picker to university domain, set VITE_RESTRICT_DOMAIN=true in .env
+const googleParams = { prompt: 'select_account' };
+if (env.VITE_RESTRICT_DOMAIN === 'true') {
+  googleParams.hd = 'g.batstate-u.edu.ph';
+}
+googleProvider.setCustomParameters(googleParams);
 
