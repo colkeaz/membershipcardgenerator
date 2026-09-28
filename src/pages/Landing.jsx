@@ -40,8 +40,11 @@ export default function Landing() {
     try {
       await signInWithGoogle();
       navigate('/card');
-    } catch {
-      // User cancelled or closed sign-in popup
+    } catch (err) {
+      if (err?.code !== 'auth/popup-closed-by-user' && err?.code !== 'auth/cancelled-popup-request') {
+        console.error('Google sign-in error:', err);
+        alert(err?.message || 'Failed to sign in with Google. Please try again.');
+      }
     } finally {
       setSigningIn(false);
     }
