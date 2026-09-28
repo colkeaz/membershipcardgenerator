@@ -7,15 +7,9 @@ const env = (typeof import.meta !== 'undefined' && import.meta?.env)
   ? import.meta.env
   : (typeof process !== 'undefined' && process.env ? process.env : {});
 
-// When deployed on Firebase Hosting (*.web.app), using the hosting domain as authDomain ensures
-// same-origin authentication and prevents third-party cookie/iframe blocking.
-const authDomain = (typeof window !== 'undefined' && window.location?.hostname?.endsWith('.web.app'))
-  ? window.location.hostname
-  : (env.VITE_FIREBASE_AUTH_DOMAIN || 'demo.firebaseapp.com');
-
 const firebaseConfig = {
   apiKey:            env.VITE_FIREBASE_API_KEY || 'demo-api-key',
-  authDomain:        authDomain,
+  authDomain:        env.VITE_FIREBASE_AUTH_DOMAIN || 'membershipcardgen.firebaseapp.com',
   projectId:         env.VITE_FIREBASE_PROJECT_ID || 'demo-project',
   storageBucket:     env.VITE_FIREBASE_STORAGE_BUCKET || 'demo.appspot.com',
   messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || '0000000000',
