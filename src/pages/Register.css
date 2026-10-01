@@ -93,3 +93,42 @@
 @media (max-width: 560px) {
   .register-card { padding: 28px 20px; }
 }
+
+/* ─── Partner Overrides ─── */
+.partner-bg {
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(255,188,1,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(255,255,255,0.03) 0%, transparent 50%);
+}
+
+.partner-logo {
+  border-color: rgba(255, 255, 255, 0.4);
+  filter: grayscale(100%) brightness(150%);
+}
+
+.partner-submit {
+  background: var(--color-surface-2) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: none !important;
+}
+
+.partner-submit:hover {
+  background: rgba(255,188,1,0.1) !important;
+  border-color: var(--color-gold) !important;
+  color: var(--color-gold) !important;
+}
+
+.partner-badge {
+  display: inline-block;
+  background: rgba(255,188,1,0.15);
+  color: var(--color-gold);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  border: 1px solid rgba(255,188,1,0.3);
+}

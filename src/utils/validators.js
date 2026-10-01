@@ -36,10 +36,17 @@ export function validateStudentId(studentId) {
   return null;
 }
 
-// Fixed: HIGH-02 University Domain Enforcement helper
+export const WHITELISTED_EMAILS = [
+  'sscalangilan.storage@gmail.com',
+  'paala.luke24@gmail.com'
+];
+
+// Fixed: HIGH-02 University Domain Enforcement helper (with whitelist)
 export function isValidUniversityEmail(email) {
   if (!email || typeof email !== 'string') return false;
-  const parts = email.trim().toLowerCase().split('@');
+  const trimmed = email.trim().toLowerCase();
+  if (WHITELISTED_EMAILS.includes(trimmed)) return true;
+  const parts = trimmed.split('@');
   return parts.length === 2 && parts[1] === UNIVERSITY_DOMAIN;
 }
 

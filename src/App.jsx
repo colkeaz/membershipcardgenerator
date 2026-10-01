@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 import { ToastProvider } from './components/ToastProvider';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
+import { ProtectedRoute, AdminRoute, VerifyRoute, StudentRoute } from './components/ProtectedRoute';
 import Landing from './pages/Landing';
 import Register from './pages/Register';
 import CardPage from './pages/CardPage';
@@ -12,6 +12,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import VerifyPage from './pages/VerifyPage';
 import Benefits from './pages/Benefits';
 import OfficeRegistration from './pages/OfficeRegistration';
+import PartnerSignup from './pages/PartnerSignup';
 
 function AppRoutes() {
   const { user, member, loading } = useAuth();
@@ -32,12 +33,20 @@ function AppRoutes() {
         <Route path="/" element={<Landing />} />
         <Route path="/register" element={
           <ProtectedRoute>
-            {member ? <Navigate to="/card" replace /> : <Register />}
+            <StudentRoute>
+              {member ? <Navigate to="/card" replace /> : <Register />}
+            </StudentRoute>
           </ProtectedRoute>
         } />
         <Route path="/card" element={
           <ProtectedRoute>
-            {!member ? <Navigate to="/register" replace /> : <CardPage />}
+            {!member ? (
+              <Navigate to="/register" replace />
+            ) : member.role === 'partner' ? (
+              <Navigate to="/verify" replace />
+            ) : (
+              <CardPage />
+            )}
           </ProtectedRoute>
         } />
         <Route path="/admin" element={
@@ -47,8 +56,18 @@ function AppRoutes() {
             </AdminRoute>
           </ProtectedRoute>
         } />
-        {/* Public — no auth needed to scan and verify a card */}
-        <Route path="/verify" element={<VerifyPage />} />
+        {/* Partner Registration */}
+        <Route path="/partner-signup" element={
+          member ? <Navigate to="/verify" replace /> : <PartnerSignup />
+        } />
+        {/* Restricted — Only partners/officers/admins can verify cards */}
+        <Route path="/verify" element={
+          <ProtectedRoute>
+            <VerifyRoute>
+              <VerifyPage />
+            </VerifyRoute>
+          </ProtectedRoute>
+        } />
         {/* Public — Benefits page accessible to everyone */}
         <Route path="/benefits" element={<Benefits />} />
         {/* Public — In-person office registration instructions */}

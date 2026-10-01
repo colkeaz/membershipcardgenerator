@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, CreditCard, LayoutDashboard, Gift } from 'lucide-react';
+import { LogOut, CreditCard, LayoutDashboard, Gift, QrCode } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import './Navbar.css';
 
@@ -10,6 +10,7 @@ export default function Navbar() {
   const navigate  = useNavigate();
 
   const isOfficer = member?.role === 'officer' || member?.role === 'admin';
+  const isPartner = member?.role === 'partner' || isOfficer;
 
   const handleLogout = async () => {
     await logout();
@@ -53,6 +54,16 @@ export default function Navbar() {
             >
               <LayoutDashboard size={16} />
               <span>Dashboard</span>
+            </Link>
+          )}
+          {isPartner && (
+            <Link
+              to="/verify"
+              id="nav-verify"
+              className={`navbar-link ${location.pathname === '/verify' ? 'active' : ''}`}
+            >
+              <QrCode size={16} />
+              <span>Scanner</span>
             </Link>
           )}
         </div>

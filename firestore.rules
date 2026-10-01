@@ -12,7 +12,7 @@ service cloud.firestore {
         && (
           isOfficerOrAbove()
           || (
-            docId == 'memberCounter'
+            (docId == 'memberCounter' || docId == 'partnerCounter')
             && (
               (!exists(/databases/$(database)/documents/org/$(docId)) && request.resource.data.count == 1)
               || request.resource.data.count == resource.data.count + 1
@@ -23,29 +23,34 @@ service cloud.firestore {
 
     // ── Members ──
     match /members/{uid} {
-      // Fixed: HIGH-03 Public Read Access to Member PII as per audit
-      // Authenticated users can read their own profile, officers/admins can read any profile.
-      // Server-side verification via Cloud Function uses Admin SDK to bypass rules securely.
-      // Kept fallback for client QR verification until Cloud Functions are deployed to production.
-      allow get: if (request.auth != null && (request.auth.uid == uid || isOfficerOrAbove()))
-        || true;
+      // Fixed: HIGH-03 Removed Public Read Access to Member PII
+      // Authenticated users can read their own profile, officers/admins/partners can read any profile.
+      allow get: if request.auth != null && (request.auth.uid == uid || isOfficerOrAbove() || isPartner());
 
-      // Allow listing/searching all members ONLY for officers and admins
-      allow list: if request.auth != null && isOfficerOrAbove();
+      // Allow listing/searching all members ONLY for officers, admins, partners
+      allow list: if request.auth != null && (isOfficerOrAbove() || isPartner());
 
       // ── SELF-REGISTRATION ──
       // Fixed: MED-01 Server-side input validation on registration as per audit
-      // Any authenticated user can create their OWN member doc,
-      // as long as role='member', status='pending', and input constraints are strictly satisfied.
+      // Any authenticated user can create their OWN member doc.
+      // - Students must have role='member', status='pending', valid fullName, valid studentId
+      // - Partners must have role='partner', status='pending', valid fullName (business name)
       allow create: if request.auth != null
         && request.auth.uid == uid
-        && request.resource.data.role == 'member'
         && request.resource.data.status == 'pending'
         && request.resource.data.fullName is string
         && request.resource.data.fullName.size() > 0
         && request.resource.data.fullName.size() <= 100
-        && request.resource.data.studentId is string
-        && request.resource.data.studentId.matches('^([0-9]{2}|[0-9]{4})-[0-9]{5}$');
+        && (
+          (
+            request.resource.data.role == 'member'
+            && request.resource.data.studentId is string
+            && request.resource.data.studentId.matches('^([0-9]{2}|[0-9]{4})-[0-9]{5}$')
+          ) || (
+            request.resource.data.role == 'partner'
+            // Optional: add other checks for partners, e.g. contactPerson, businessType
+          )
+        );
 
       // A member can update their own non-sensitive fields
       allow update: if request.auth != null
@@ -80,6 +85,10 @@ service cloud.firestore {
 
     function isAdmin() {
       return getMemberRole() == 'admin';
+    }
+
+    function isPartner() {
+      return getMemberRole() == 'partner';
     }
   }
 }

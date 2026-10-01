@@ -78,7 +78,7 @@
    ══════════════════════════════ */
 .card-face-front {
   background: linear-gradient(135deg, #8F0000 0%, #aa0f08 38%, #D11A0D 72%, #8F0000 100%);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-card);
   color: #fff;
   user-select: none;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -302,7 +302,7 @@
 }
 
 .card-member-number {
-  font-family: 'Inter', monospace;
+  font-family: var(--font-card);
   font-size: 0.72rem;
   color: #FFBC01;
   font-weight: 700;
@@ -321,7 +321,7 @@
 .card-face-back {
   transform: rotateY(180deg);
   background: linear-gradient(135deg, #1c0204 0%, #460207 45%, #750004 80%, #300002 100%);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-card);
   color: #fff;
   user-select: none;
   display: flex;
@@ -395,6 +395,21 @@
   }
 }
 
+.card-certification {
+  font-size: 0.38rem;
+  line-height: 1.25;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0 16px;
+}
+
+.card-certification p {
+  margin: 0 0 4px 0;
+}
+.card-certification p:last-child {
+  margin-bottom: 0;
+}
+
 
 /* Bottom branding */
 .card-back-footer {
@@ -463,14 +478,18 @@
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
+.card-inactive-overlay span {
+  color: rgba(239, 68, 68, 0.65);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 480px) {
   .card-scene {
-    width: calc(100vw - 48px);
-    height: calc((100vw - 48px) * 0.631);
-  }
-
-  .card-member-name {
-    font-size: 0.82rem;
+    width: 420px;
+    height: 265px;
+    transform: scale(calc((100vw - 48px) / 420));
+    transform-origin: top center;
+    margin-bottom: calc((265px * calc((100vw - 48px) / 420)) - 265px);
   }
 }

@@ -11,20 +11,95 @@ import { UserCheck, BookOpen, GraduationCap, Hash } from 'lucide-react';
 import PrivacyConsentModal from '../components/PrivacyConsentModal';
 import './Register.css';
 
-const YEAR_LEVELS = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
-const COURSES = [
-  'BS Computer Engineering',
-  'BS Civil Engineering',
-  'BS Electrical Engineering',
-  'BS Electronics Engineering',
-  'BS Industrial Engineering',
-  'BS Mechanical Engineering',
-  'BS Chemical Engineering',
-  'BS Architecture',
-  'BS Information Technology',
-  'BS Computer Science',
-  'Other',
-];
+const YEAR_LEVELS = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year and above '];
+const DEPARTMENTS = {
+  "Department of Chemical Engineering": [
+    "Bachelor of Science in Ceramics Engineering (BSCerE)",
+    "Bachelor of Science in Chemical Engineering (BSChE)",
+    "Bachelor of Science in Food Engineering (BSFE)",
+    "Bachelor of Science in Metallurgical Engineering (BSMetE)"
+  ],
+  "Department of Civil Engineering": [
+    "Bachelor of Science in Civil Engineering (BSCE)",
+    "Bachelor of Science in Geodetic Engineering (BSGE)",
+    "Bachelor of Science in Geological Engineering (BSGeoE)",
+    "Bachelor of Science in Sanitary Engineering (BSSE)",
+    "Bachelor of Science in Transportation Systems Engineering (BSTE)"
+  ],
+  "Department of Electrical Engineering": [
+    "Bachelor of Science in Computer Engineering (BSCpE)",
+    "Bachelor of Science in Electrical Engineering (BSEE)"
+  ],
+  "Department of Electronics Engineering": [
+    "Bachelor of Science in Aerospace Engineering (BSAeE)",
+    "Bachelor of Science in Biomedical Engineering (BSBioE)",
+    "Bachelor of Science in Electronics Engineering (BSECE)",
+    "Bachelor of Science in Instrumentation and Control Engineering (BSICE)",
+    "Bachelor of Science in Mechatronics Engineering (BSMexE)"
+  ],
+  "Department of Industrial Engineering": [
+    "Bachelor of Science in Industrial Engineering (BSIE)"
+  ],
+  "Department of Mechanical Engineering": [
+    "Bachelor of Science in Automotive Engineering (BSAE)",
+    "Bachelor of Science in Mechanical Engineering (BSME)",
+    "Bachelor of Science in Petroleum Engineering (BSPetE)",
+    "Bachelor of Science in Naval Architecture and Marine Engineering (BSNAME)"
+  ],
+  "College of Architecture, Fine Arts and Design": [
+    "Bachelor of Fine Arts and Design Major in Visual Communication",
+    "Bachelor of Science in Architecture",
+    "Bachelor of Science in Interior Design"
+  ],
+  "College of Informatics and Computing Sciences": [
+    "Bachelor of Science in Computer Science",
+    "Bachelor of Science in Information Technology"
+  ],
+  "College of Engineering and Technology": [
+    "Bachelor of Automotive Engineering Technology",
+    "Bachelor of Civil Engineering Technology",
+    "Bachelor of Computer Engineering Technology",
+    "Bachelor of Drafting Engineering Technology",
+    "Bachelor of Electrical Engineering Technology",
+    "Bachelor of Electronics Engineering Technology",
+    "Bachelor of Food Engineering Technology",
+    "Bachelor of Instrumentation and Control Engineering Technology",
+    "Bachelor of Mechanical Engineering Technology",
+    "Bachelor of Mechatronics Engineering Technology",
+    "Bachelor of Welding and Fabrication Engineering Technology"
+  ],
+  "CAF Lobo": [
+    "Bachelor of Science in Agriculture",
+    "Bachelor of Science in Forestry"
+  ],
+  "CICS Balayan": [
+    "Bachelor of Science in Information Technology"
+  ],
+  "CET Balayan": [
+    "Bachelor of Industrial Technology - Automotive Technology",
+    "Bachelor of Industrial Technology - Civil Technology",
+    "Bachelor of Industrial Technology - Computer Technology",
+    "Bachelor of Industrial Technology - Drafting Technology",
+    "Bachelor of Industrial Technology - Electrical Technology",
+    "Bachelor of Industrial Technology - Electronics Technology",
+    "Bachelor of Industrial Technology - Instrumentation and Control Technology",
+    "Bachelor of Industrial Technology - Mechanical Technology"
+  ],
+  "CICS Mabini": [
+    "Bachelor of Science in Information Technology"
+  ],
+  "College of Engineering and Technology LIMA": [
+    "Bachelor of Science in Aerospace Engineering (BSAeE)",
+    "Bachelor of Science in Automotive Engineering (BSAE)",
+    "Bachelor of Science in Biomedical Engineering (BSBioE)",
+    "Bachelor of Science in Food Engineering (BSFE)",
+    "Bachelor of Science in Instrumentation and Control Engineering (BSICE)",
+    "Bachelor of Science in Mechatronics Engineering (BSMexE)",
+    "Bachelor of Science in Transportation Systems Engineering (BSTE)",
+    "Bachelor of Computer Engineering Technology",
+    "Bachelor of Electrical Engineering Technology"
+  ]
+};
 
 export default function Register() {
   const { user, refreshMember } = useAuth();
@@ -34,7 +109,8 @@ export default function Register() {
   const [form, setForm] = useState({
     fullName:  user?.displayName || '',
     studentId: '',
-    course:    '',
+    department: '',
+    program:    '',
     yearLevel: '',
   });
   const [loading, setLoading]           = useState(false);
@@ -50,15 +126,22 @@ export default function Register() {
     const idErr = validateStudentId(form.studentId);
     if (idErr) e.studentId = idErr;
 
-    if (!form.course)    e.course    = 'Please select your program';
-    if (!form.yearLevel) e.yearLevel = 'Please select your year level';
+    if (!form.department) e.department = 'Please select your department';
+    if (!form.program)    e.program    = 'Please select your program';
+    if (!form.yearLevel)  e.yearLevel  = 'Please select your year level';
     return e;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    if (name === 'department') {
+      setForm(prev => ({ ...prev, department: value, program: '' }));
+      if (errors.department) setErrors(prev => ({ ...prev, department: '' }));
+      if (errors.program) setErrors(prev => ({ ...prev, program: '' }));
+    } else {
+      setForm(prev => ({ ...prev, [name]: value }));
+      if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   /* Step 1: Validate form fields, then open the privacy consent modal */
@@ -85,15 +168,16 @@ export default function Register() {
       await runTransaction(db, async (tx) => {
         const counterSnap = await tx.get(counterRef);
         const seq = (counterSnap.exists() ? counterSnap.data().count : 0) + 1;
-        membershipNumber = generateMembershipNumber(seq);
+        membershipNumber = generateMembershipNumber(seq, 'member', form.department);
         tx.set(counterRef, { count: seq }, { merge: true });
         tx.set(memberRef, {
           uid:              user.uid,
           email:            user.email,
           fullName:         cleanFullName,
           studentId:        cleanStudentId,
-          program:          form.course,
-          course:           form.course,
+          department:       form.department,
+          program:          form.program,
+          course:           form.program,
           yearLevel:        form.yearLevel,
           membershipNumber,
           schoolYear:       getCurrentSchoolYear(),
@@ -178,23 +262,43 @@ export default function Register() {
                 {errors.studentId && <span className="field-error">{errors.studentId}</span>}
               </div>
 
+              {/* Department */}
+              <div className="form-group">
+                <label htmlFor="reg-department" className="form-label">
+                  <BookOpen size={13} style={{ display:'inline', marginRight:4 }} />
+                  Department / College
+                </label>
+                <select
+                  id="reg-department"
+                  name="department"
+                  className={`form-select ${errors.department ? 'input-error' : ''}`}
+                  value={form.department}
+                  onChange={handleChange}
+                >
+                  <option value="">Select department…</option>
+                  {Object.keys(DEPARTMENTS).map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                </select>
+                {errors.department && <span className="field-error">{errors.department}</span>}
+              </div>
+
               {/* Program */}
               <div className="form-group">
-                <label htmlFor="reg-course" className="form-label">
+                <label htmlFor="reg-program" className="form-label">
                   <BookOpen size={13} style={{ display:'inline', marginRight:4 }} />
                   Program
                 </label>
                 <select
-                  id="reg-course"
-                  name="course"
-                  className={`form-select ${errors.course ? 'input-error' : ''}`}
-                  value={form.course}
+                  id="reg-program"
+                  name="program"
+                  className={`form-select ${errors.program ? 'input-error' : ''}`}
+                  value={form.program}
                   onChange={handleChange}
+                  disabled={!form.department}
                 >
                   <option value="">Select program…</option>
-                  {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+                  {form.department && DEPARTMENTS[form.department].map(prog => <option key={prog} value={prog}>{prog}</option>)}
                 </select>
-                {errors.course && <span className="field-error">{errors.course}</span>}
+                {errors.program && <span className="field-error">{errors.program}</span>}
               </div>
 
               {/* Year Level */}

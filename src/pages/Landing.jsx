@@ -109,7 +109,10 @@ export default function Landing() {
                 ? <><span className="spinner spinner-sm" /> Signing in…</>
                 : <><Chrome size={20} /> Continue with Google</>}
             </button>
-            <p className="landing-hint">Use your Google account to register</p>
+            <p className="landing-hint">Use your BatStateU Google account to register</p>
+            <p className="landing-hint" style={{ marginTop: 8 }}>
+              Business Partner? <a href="/partner-signup" style={{ textDecoration: 'underline' }}>Apply here</a>
+            </p>
           </>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>

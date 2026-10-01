@@ -107,15 +107,18 @@
 
 @media (max-width: 640px) {
   .navbar-inner {
-    gap: 8px;
+    gap: 6px;
+    padding: 0 4px;
   }
   .navbar-title {
-    font-size: 1rem;
+    display: none; /* Hide 'SSC-AL' text to save space */
   }
   .navbar-link {
-    padding: 6px 10px;
-    font-size: 0.8rem;
-    gap: 5px;
+    padding: 8px 10px;
+    gap: 0;
+  }
+  .navbar-link span {
+    display: none; /* Hide link text, only show icons */
   }
   .navbar-user-name {
     display: none;
@@ -124,6 +127,6 @@
     display: none;
   }
   .navbar-logout {
-    padding: 6px 8px;
+    padding: 8px;
   }
 }

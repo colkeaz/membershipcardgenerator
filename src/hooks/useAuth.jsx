@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../firebase';
+import { isValidUniversityEmail } from '../utils/validators';
 
 const AuthContext = createContext(null);
 
@@ -12,12 +13,13 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
       if (firebaseUser) {
+        setUser(firebaseUser);
         const memberRef = doc(db, 'members', firebaseUser.uid);
         const snap = await getDoc(memberRef);
         setMember(snap.exists() ? { id: snap.id, ...snap.data() } : null);
       } else {
+        setUser(null);
         setMember(null);
       }
       setLoading(false);
@@ -25,7 +27,9 @@ export function AuthProvider({ children }) {
     return unsub;
   }, []);
 
-  const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
+  const signInWithGoogle = async () => {
+    return await signInWithPopup(auth, googleProvider);
+  };
   const logout = () => signOut(auth);
 
   const refreshMember = async () => {

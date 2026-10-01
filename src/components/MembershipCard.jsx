@@ -61,11 +61,15 @@ export const CardFront = React.forwardRef(function CardFront({ member, isPreview
       <div className="card-gold-stripe" aria-hidden="true" />
 
       {/* Preview watermark */}
-      {isPreview && (
+      {isPreview ? (
         <div className="card-preview-overlay" aria-label="Preview">
           <span>PREVIEW</span>
         </div>
-      )}
+      ) : (member?.status === 'pending' || member?.status === 'inactive') ? (
+        <div className="card-preview-overlay card-inactive-overlay" aria-label="Inactive">
+          <span>INACTIVE</span>
+        </div>
+      ) : null}
     </div>
   );
 });
@@ -73,13 +77,13 @@ export const CardFront = React.forwardRef(function CardFront({ member, isPreview
 /* ─────────────────────────────────────────────
    CARD BACK
    ───────────────────────────────────────────── */
-export const CardBack = React.forwardRef(function CardBack({ qrDataUrl, isPreview = false }, ref) {
+export const CardBack = React.forwardRef(function CardBack({ member, qrDataUrl, isPreview = false }, ref) {
   return (
     <div className="card-face card-face-back" ref={ref}>
       {/* Magnetic stripe */}
       <div className="card-mag-stripe" aria-hidden="true" />
 
-      {/* QR section */}
+      {/* QR & Certification section */}
       <div className="card-back-body">
         <div className="card-qr-frame">
           {qrDataUrl ? (
@@ -90,7 +94,10 @@ export const CardBack = React.forwardRef(function CardBack({ qrDataUrl, isPrevie
             </div>
           )}
         </div>
-
+        <div className="card-certification">
+          <p>THIS IS TO CERTIFY THAT THE PERSON WHOSE NAME, AND PHOTOGRAPH APPEARS HEREIN IS A DULY REGISTERED MEMBER OF THE SUPREME STUDENT COUNCIL OF BATANGAS STATE UNIVERSITY, THE NATIONAL ENGINEERING UNIVERSITY - ALANGILAN CAMPUS.</p>
+          <p>THIS IS TO CERTIFY FURTHER THAT THEY ARE A STUDENT IN GOOD STANDING THAT THEIR MEMBERSHIP HAS NOT BEEN SUSPENDED, REVOKED, OR WITHDRAWN.</p>
+        </div>
       </div>
 
       {/* Bottom branding */}
@@ -106,11 +113,15 @@ export const CardBack = React.forwardRef(function CardBack({ qrDataUrl, isPrevie
       <div className="card-gold-stripe" aria-hidden="true" />
 
       {/* Preview watermark */}
-      {isPreview && (
+      {isPreview ? (
         <div className="card-preview-overlay" aria-label="Preview">
           <span>PREVIEW</span>
         </div>
-      )}
+      ) : (member?.status === 'pending' || member?.status === 'inactive') ? (
+        <div className="card-preview-overlay card-inactive-overlay" aria-label="Inactive">
+          <span>INACTIVE</span>
+        </div>
+      ) : null}
     </div>
   );
 });
@@ -154,7 +165,7 @@ export default function MembershipCard({ member, qrDataUrl, autoFlip = false, is
       >
         <div className={`card-inner ${flipped ? 'is-flipped' : ''}`}>
           <CardFront member={member} isPreview={isPreview} />
-          <CardBack qrDataUrl={qrDataUrl} isPreview={isPreview} />
+          <CardBack member={member} qrDataUrl={qrDataUrl} isPreview={isPreview} />
         </div>
       </div>
     </div>

@@ -221,7 +221,7 @@ export default function AdminDashboard() {
             ...row,
             importedBy: self?.uid || 'admin',
             importedAt: serverTimestamp(),
-            membershipNumber: generateMembershipNumber(seq),
+            membershipNumber: generateMembershipNumber(seq, 'member', row.department),
             schoolYear: getCurrentSchoolYear(),
             semester:   getCurrentSemester(),
             status:     'pending',
@@ -382,11 +382,11 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td style={{ fontWeight:600 }}>{m.fullName}</td>
-                      <td style={{ fontFamily:'monospace', fontSize:'0.85rem' }}>{m.studentId}</td>
+                      <td style={{ fontFamily:'monospace', fontSize:'0.85rem' }}>{m.studentId || '-'}</td>
                       <td style={{ fontSize:'0.82rem', color:'var(--color-text-muted)', maxWidth:'160px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                        {m.program || m.course}
+                        {m.program || m.course || '-'}
                       </td>
-                      <td style={{ fontSize:'0.85rem' }}>{m.yearLevel}</td>
+                      <td style={{ fontSize:'0.85rem' }}>{m.yearLevel || '-'}</td>
                       <td>
                         <span className={`badge badge-${m.status}`}>{m.status}</span>
                       </td>
@@ -402,6 +402,7 @@ export default function AdminDashboard() {
                             <option value="member">Member</option>
                             <option value="officer">Officer</option>
                             <option value="admin">Admin</option>
+                            <option value="partner">Partner</option>
                           </select>
                         ) : (
                           <span style={{ fontSize:'0.82rem', color:'var(--color-text-muted)' }}>{m.role}</span>
@@ -499,7 +500,7 @@ export default function AdminDashboard() {
                 <div key={i} className="csv-preview-row">
                   <span style={{ fontWeight:600 }}>{m.fullName || '—'}</span>
                   <span style={{ fontSize:'0.8rem', color:'var(--color-text-muted)' }}>{m.studentId}</span>
-                  <span style={{ fontSize:'0.8rem', color:'var(--color-text-dim)' }}>{m.course} · {m.yearLevel}</span>
+                  <span style={{ fontSize:'0.8rem', color:'var(--color-text-dim)' }}>{m.program || m.course} · {m.yearLevel}</span>
                 </div>
               ))}
               {csvPreview.length > 10 && (

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { verifyCard } from '../utils/cardSigning';
-import { CheckCircle, XCircle, AlertTriangle, Loader } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Loader, Search } from 'lucide-react';
 import './VerifyPage.css';
 
 /**
@@ -20,12 +20,16 @@ export default function VerifyPage() {
   const uid = params.get('uid');
   const sig = params.get('sig');
 
-  const [status, setStatus] = useState('loading'); // 'loading' | 'valid' | 'invalid' | 'inactive' | 'error'
+  const [status, setStatus] = useState(!mn || !uid || !sig ? 'idle' : 'loading'); // 'idle' | 'loading' | 'valid' | 'invalid' | 'inactive' | 'error'
   const [member, setMember] = useState(null);
+  const [manualMn, setManualMn] = useState('');
+  const [manualError, setManualError] = useState('');
 
   useEffect(() => {
     if (!mn || !uid || !sig) {
-      setStatus('error');
+      if (params.get('preview') !== 'true') {
+        setStatus('idle');
+      }
       return;
     }
 
@@ -84,7 +88,31 @@ export default function VerifyPage() {
 
     verify();
     return () => { cancelled = true; };
-  }, [mn, uid, sig]);
+  }, [mn, uid, sig, params]);
+
+  const handleManualSearch = async (e) => {
+    e.preventDefault();
+    const trimmedMn = manualMn.trim();
+    if (!trimmedMn) return;
+
+    setManualError('');
+    setStatus('loading');
+    try {
+      const q = query(collection(db, 'members'), where('membershipNumber', '==', trimmedMn));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        setStatus('invalid');
+        return;
+      }
+      const data = snap.docs[0].data();
+      setMember(data);
+      setStatus(data.status === 'active' ? 'valid' : 'inactive');
+    } catch (err) {
+      console.error(err);
+      setManualError('Search failed. Ensure you have the proper access rights.');
+      setStatus('idle');
+    }
+  };
 
   return (
     <main className="verify-page">
@@ -104,6 +132,30 @@ export default function VerifyPage() {
           <div className="verify-divider" />
 
           {/* Result */}
+          {status === 'idle' && (
+            <div className="verify-result verify-idle">
+              <div className="verify-icon-wrap" style={{ color: 'var(--color-text-muted)', border: '2px solid var(--color-border)' }}>
+                <Search size={48} />
+              </div>
+              <h1 className="verify-heading">Partner Dashboard</h1>
+              <p className="verify-desc">Scan a QR code using your phone's camera to verify, or enter a Membership Number below.</p>
+              <form onSubmit={handleManualSearch} style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', textAlign: 'left' }}>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="e.g. SSC-AL-2025-00001"
+                  value={manualMn}
+                  onChange={e => setManualMn(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+                {manualError && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{manualError}</p>}
+                <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={!manualMn.trim()}>
+                  Verify Card
+                </button>
+              </form>
+            </div>
+          )}
+
           {status === 'loading' && (
             <div className="verify-result verify-loading">
               <Loader size={48} className="verify-spin" />

@@ -37,16 +37,19 @@ export function parseCSV(file) {
           const rawName = row.fullname || row['full name'] || row.name || '';
           const rawSid  = row.studentid || row['student id'] || row.id || '';
           const rawProg = row.program || row.course || '';
+          const rawDept = row.department || row.college || '';
           const rawYear = row.yearlevel || row['year level'] || row.year || '';
 
           const prog = sanitizeCsvField(rawProg, 100);
+          const dept = sanitizeCsvField(rawDept, 100);
           return {
             fullName:         sanitizeCsvField(rawName, 100),
             studentId:        sanitizeCsvField(rawSid, 20),
+            department:       dept,
             program:          prog,
             course:           prog,
             yearLevel:        sanitizeCsvField(rawYear, 20),
-            membershipNumber: generateMembershipNumber(i + 1),
+            membershipNumber: generateMembershipNumber(i + 1, 'member', dept),
             schoolYear:       getCurrentSchoolYear(),
             semester:         getCurrentSemester(),
             status:           'pending',
