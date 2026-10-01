@@ -16,7 +16,6 @@ const DEMO_MEMBER = {
   status: 'active',
 };
 
-// A static demo QR (encodes a placeholder verify URL)
 const DEMO_QR_TEXT = 'https://membershipcardgen.web.app/verify?preview=true';
 
 export default function Landing() {
@@ -25,7 +24,6 @@ export default function Landing() {
   const [signingIn, setSigningIn] = useState(false);
   const [demoQr, setDemoQr] = useState('');
 
-  // Generate a demo QR for the preview card
   useEffect(() => {
     import('qrcode').then(QRCode => {
       QRCode.toDataURL(DEMO_QR_TEXT, {
@@ -54,39 +52,65 @@ export default function Landing() {
 
   return (
     <main className="landing">
-      {/* Ambient background glows */}
-      <div className="landing-glow landing-glow-1" aria-hidden="true" />
-      <div className="landing-glow landing-glow-2" aria-hidden="true" />
+      <div className="container landing-container">
+        {/* Left: Content */}
+        <div className="landing-content animate-fade-up">
+          {!user && (
+            <div className="landing-badge">
+              <img src="/logo.jpg" alt="" className="landing-badge-logo" />
+              <span>Supreme Student Council · Alangilan</span>
+            </div>
+          )}
 
-      <div className="landing-inner">
-        {/* Header - shown only when not signed in (when signed in, top Navbar is present) */}
-        {!user && (
-          <header className="landing-header">
-            <Link to="/benefits" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
-              <img src="/logo.jpg" alt="SSC-AL Logo" className="landing-logo" />
-              <div className="landing-org">
-                <span className="landing-org-name">SUPREME STUDENT COUNCIL</span>
-                <span className="landing-org-campus">Alangilan Campus · Batangas State University</span>
-              </div>
-            </Link>
-          </header>
-        )}
-
-        {/* Title */}
-        <div className="landing-title-group">
-          <h1 className="landing-title">
+          <h1 className="landing-heading">
             Digital Membership<br />
-            <span className="text-gradient">Card</span>
+            Card System
           </h1>
-          <p className="landing-sub">
+
+          <p className="landing-description">
             {user
-              ? 'Preview your digital membership card below or open your card from the navigation.'
-              : 'Sign in to generate and download your official SSC-AL membership card.'}
+              ? 'Your digital membership card is ready. View or download it from the navigation.'
+              : 'Sign in with your BatStateU Google account to generate your official SSC-AL membership card.'}
           </p>
+
+          {!user ? (
+            <div className="landing-actions">
+              <button
+                id="btn-google-signin"
+                className="btn btn-gold btn-lg"
+                onClick={handleSignIn}
+                disabled={signingIn || loading}
+                aria-label="Sign in with Google"
+              >
+                {signingIn
+                  ? <><span className="spinner spinner-sm" /> Signing in…</>
+                  : <><Chrome size={18} aria-hidden="true" /> Continue with Google</>}
+              </button>
+              <p className="landing-footnote">
+                Use your <strong>@g.batstate-u.edu.ph</strong> account
+              </p>
+              <p className="landing-footnote">
+                Business Partner? <a href="/partner-signup">Apply here →</a>
+              </p>
+            </div>
+          ) : (
+            <div className="landing-actions">
+              <button
+                id="btn-goto-card"
+                className="btn btn-gold btn-lg"
+                onClick={() => navigate(member ? '/card' : '/register')}
+              >
+                {member ? 'View My Card →' : 'Complete Registration →'}
+              </button>
+              <p className="landing-footnote">
+                Signed in as {user.displayName || user.email}
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Preview flip card */}
-        <div className="landing-card-preview">
+        {/* Right: Card preview */}
+        <div className="landing-card-area animate-fade-up delay-1">
           <MembershipCard
             member={user && member ? member : DEMO_MEMBER}
             qrDataUrl={demoQr}
@@ -94,41 +118,8 @@ export default function Landing() {
             isPreview={!user || !member}
           />
         </div>
-
-        {/* Actions */}
-        {!user ? (
-          <>
-            <button
-              id="btn-google-signin"
-              className="btn btn-gold btn-lg landing-signin-btn"
-              onClick={handleSignIn}
-              disabled={signingIn || loading}
-              aria-label="Sign in with Google"
-            >
-              {signingIn
-                ? <><span className="spinner spinner-sm" /> Signing in…</>
-                : <><Chrome size={20} /> Continue with Google</>}
-            </button>
-            <p className="landing-hint">Use your BatStateU Google account to register</p>
-            <p className="landing-hint" style={{ marginTop: 8 }}>
-              Business Partner? <a href="/partner-signup" style={{ textDecoration: 'underline' }}>Apply here</a>
-            </p>
-          </>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-            <button
-              id="btn-goto-card"
-              className="btn btn-gold btn-lg landing-signin-btn"
-              onClick={() => navigate(member ? '/card' : '/register')}
-            >
-              {member ? 'View My Card →' : 'Complete Registration →'}
-            </button>
-            <p className="landing-hint">You are signed in as {user.displayName || user.email}</p>
-          </div>
-        )}
-
-
       </div>
     </main>
   );
 }
+

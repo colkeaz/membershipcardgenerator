@@ -122,7 +122,7 @@ export default function PrivacyConsentModal({ isOpen, onAccept, onDecline, loadi
                 </ul>
               </div>
 
-              <p style={{ fontSize: '0.86rem', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontSize: '0.86rem', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.6 }}>
                 Would you like to return to review and accept the privacy terms, or confirm your
                 decline and view the office location and operating hours?
               </p>
@@ -255,3 +255,4 @@ export default function PrivacyConsentModal({ isOpen, onAccept, onDecline, loadi
     </div>
   );
 }
+

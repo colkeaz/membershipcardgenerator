@@ -13,7 +13,7 @@
 
 .card-hint {
   font-size: 0.75rem;
-  color: var(--color-text-dim);
+  color: var(--color-text-tertiary);
   letter-spacing: 0.05em;
   animation: fadeHint 0.5s ease 2.5s forwards;
   opacity: 1;
@@ -25,19 +25,7 @@
   }
 }
 
-.card-scene {
-  perspective: 1200px;
-  width: 420px;
-  height: 265px;
-  cursor: pointer;
-  outline: none;
-}
-
-.card-scene:focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 6px;
-  border-radius: 22px;
-}
+/* Base layout is now handled at the bottom of the file (Mobile-First) */
 
 .card-inner {
   width: 100%;
@@ -193,32 +181,40 @@
   gap: 14px;
 }
 
-/* EMV chip */
-.card-chip {
-  width: 40px;
-  height: 30px;
-  border-radius: 5px;
-  background: linear-gradient(135deg, #FFBC01 0%, #d4930a 50%, #FFBC01 100%);
+/* User Photo */
+.card-photo-container {
+  width: 52px;
+  height: 52px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 188, 1, 0.4);
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5px;
 }
 
-.chip-grid {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
+.card-photo {
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
-.chip-grid span {
-  background: rgba(120, 70, 0, 0.4);
-  border-radius: 1px;
+.card-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.card-photo-placeholder svg {
+  width: 24px;
+  height: 24px;
 }
 
 /* Member info */
@@ -320,59 +316,119 @@
    ═════════════════════════════ */
 .card-face-back {
   transform: rotateY(180deg);
-  background: linear-gradient(135deg, #1c0204 0%, #460207 45%, #750004 80%, #300002 100%);
+  background: #ffffff;
   font-family: var(--font-card);
-  color: #fff;
+  color: #000;
   user-select: none;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* Magnetic stripe */
-.card-mag-stripe {
+/* Faint grid */
+.card-back-grid-bg {
   position: absolute;
-  top: 32px;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events: none;
+}
+
+/* Top bar gradient */
+.card-back-top-bar {
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
-  height: 44px;
-  background: linear-gradient(180deg, #140203 0%, #080101 50%, #140203 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  height: 12px;
+  background: linear-gradient(90deg, #D11A0D 0%, #FFBC01 100%);
 }
 
-/* QR section */
+/* Main body wrapper */
 .card-back-body {
   position: absolute;
-  top: 88px;
-  left: 0;
-  right: 0;
+  top: 22px;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.card-back-left {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.card-certification {
+  font-size: 0.44rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: left;
+  color: #000;
+}
+
+.card-certification p {
+  margin: 0 0 6px 0;
+}
+.card-certification p:last-child {
+  margin-bottom: 0;
+}
+
+.card-validity {
+  display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.validity-label {
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: #D11A0D;
+  letter-spacing: -0.02em;
+}
+
+.validity-box {
+  flex: 1;
+  border: 1px solid #000;
+  padding: 4px 6px;
+  font-size: 0.42rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #000;
+  display: flex;
+  align-items: center;
+}
+
+.card-back-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .card-qr-frame {
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 6px;
-  border: 2px solid #FFBC01;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  background: transparent;
+  padding: 0;
 }
 
 .card-qr-img {
-  width: 90px;
-  height: 90px;
+  width: 105px;
+  height: 105px;
   display: block;
-  border-radius: 4px;
+  mix-blend-mode: multiply;
 }
 
 .card-qr-placeholder {
-  width: 90px;
-  height: 90px;
-  border-radius: 4px;
-  background: #fff8f0;
+  width: 105px;
+  height: 105px;
+  background: #f0f0f0;
   overflow: hidden;
   position: relative;
 }
@@ -380,76 +436,36 @@
 .qr-shimmer {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 25%, rgba(255, 188, 1, 0.15) 50%, transparent 75%);
+  background: linear-gradient(90deg, transparent 25%, rgba(0, 0, 0, 0.05) 50%, transparent 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-.card-certification {
-  font-size: 0.38rem;
-  line-height: 1.25;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.7);
-  padding: 0 16px;
-}
-
-.card-certification p {
-  margin: 0 0 4px 0;
-}
-.card-certification p:last-child {
-  margin-bottom: 0;
-}
-
-
-/* Bottom branding */
-.card-back-footer {
+/* Bottom arc */
+.card-back-bottom-arc {
   position: absolute;
-  bottom: 12px;
-  left: 14px;
-  right: 14px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: linear-gradient(90deg, #D11A0D 0%, #FFBC01 100%);
+  clip-path: ellipse(75% 100% at 50% 100%);
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 8px;
 }
 
-.card-back-logo {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid rgba(255, 188, 1, 0.35);
-  flex-shrink: 0;
-}
-
-.card-back-brand {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.card-back-org {
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: rgba(255, 188, 1, 0.8);
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
-.card-back-uni {
-  font-size: 0.52rem;
-  color: rgba(255, 255, 255, 0.35);
-  letter-spacing: 0.03em;
+.card-back-bottom-arc span {
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 /* ══════════════════════════════
@@ -483,13 +499,43 @@
   border-color: rgba(239, 68, 68, 0.4);
 }
 
-/* ─── Responsive ─── */
-@media (max-width: 480px) {
+/* ─── Responsive (Mobile First Scaling) ─── */
+/* 
+  Since the card has strict internal pixel constraints (for exports), 
+  we scale it fluidly via CSS transform. 
+  The negative margins reduce its physical layout footprint so it doesn't cause overflow-x on small screens.
+*/
+.card-scene {
+  perspective: 1200px;
+  width: 420px;
+  height: 265px;
+  cursor: pointer;
+  outline: none;
+  
+  /* Mobile-first fluid scaling (shrinks down if screen < 468px) */
+  --card-scale: calc(min(100vw - 48px, 420px) / 420);
+  transform: scale(var(--card-scale));
+  transform-origin: top center;
+  
+  /* Correct the layout footprint */
+  margin-bottom: calc((265px * var(--card-scale)) - 265px);
+  margin-left: calc((420px * var(--card-scale) - 420px) / 2);
+  margin-right: calc((420px * var(--card-scale) - 420px) / 2);
+}
+
+.card-scene:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 6px;
+  border-radius: 22px;
+}
+
+/* Tablet & Desktop Layout */
+@media (min-width: 768px) {
   .card-scene {
-    width: 420px;
-    height: 265px;
-    transform: scale(calc((100vw - 48px) / 420));
-    transform-origin: top center;
-    margin-bottom: calc((265px * calc((100vw - 48px) / 420)) - 265px);
+    /* Once viewport is wide enough, lock to native scale */
+    --card-scale: 1;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
   }
 }

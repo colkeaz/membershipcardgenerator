@@ -134,7 +134,7 @@ export default function VerifyPage() {
           {/* Result */}
           {status === 'idle' && (
             <div className="verify-result verify-idle">
-              <div className="verify-icon-wrap" style={{ color: 'var(--color-text-muted)', border: '2px solid var(--color-border)' }}>
+              <div className="verify-icon-wrap" style={{ color: 'var(--color-text-secondary)', border: '2px solid var(--color-border)' }}>
                 <Search size={48} />
               </div>
               <h1 className="verify-heading">Partner Dashboard</h1>
@@ -265,3 +265,4 @@ function InfoRow({ label, value, gold, mono, green, warn }) {
     </div>
   );
 }
+

@@ -2,20 +2,20 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(8,8,8,0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  height: 48px;
 }
 
 .navbar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
+  height: 48px;
   gap: 24px;
 }
 
+/* Brand */
 .navbar-brand {
   display: flex;
   align-items: center;
@@ -25,57 +25,55 @@
 }
 
 .navbar-logo {
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1.5px solid rgba(255,188,1,0.4);
 }
 
 .navbar-title {
   font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 700;
   color: var(--color-text);
   letter-spacing: -0.02em;
 }
 
 .navbar-title-accent {
-  color: var(--color-gold);
+  color: var(--color-text-secondary);
+  font-weight: 500;
 }
 
+/* Links */
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 4px;
-  flex: 1;
-  justify-content: center;
+  gap: 2px;
 }
 
 .navbar-link {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  font-size: 0.88rem;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--color-text-muted);
+  color: var(--color-text-tertiary);
   text-decoration: none;
-  transition: all var(--transition-fast);
+  transition: color var(--transition-fast);
 }
 
 .navbar-link:hover {
-  background: var(--color-surface-2);
   color: var(--color-text);
 }
 
 .navbar-link.active {
-  background: rgba(255,188,1,0.1);
-  color: var(--color-gold);
-  border: 1px solid rgba(255,188,1,0.15);
+  color: var(--color-text);
+  font-weight: 600;
 }
 
+/* User */
 .navbar-user {
   display: flex;
   align-items: center;
@@ -84,8 +82,8 @@
 }
 
 .navbar-user-name {
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  color: var(--color-text-tertiary);
   font-weight: 500;
 }
 
@@ -93,40 +91,30 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--color-text-muted);
-  font-size: 0.82rem;
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  color: var(--color-text-tertiary);
+  font-size: 0.8125rem;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
 }
 
 .navbar-logout:hover {
   color: #f87171;
-  background: rgba(239, 68, 68, 0.1);
 }
 
 @media (max-width: 640px) {
   .navbar-inner {
-    gap: 6px;
-    padding: 0 4px;
+    gap: 4px;
+    padding: 0 8px;
   }
-  .navbar-title {
-    display: none; /* Hide 'SSC-AL' text to save space */
-  }
+  .navbar-title { display: none; }
   .navbar-link {
-    padding: 8px 10px;
+    padding: 6px 8px;
     gap: 0;
   }
-  .navbar-link span {
-    display: none; /* Hide link text, only show icons */
-  }
-  .navbar-user-name {
-    display: none;
-  }
-  .navbar-logout-text {
-    display: none;
-  }
-  .navbar-logout {
-    padding: 8px;
-  }
+  .navbar-link span { display: none; }
+  .navbar-user-name { display: none; }
+  .navbar-logout-text { display: none; }
+  .navbar-logout { padding: 6px; }
 }
+

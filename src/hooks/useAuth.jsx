@@ -17,7 +17,19 @@ export function AuthProvider({ children }) {
         setUser(firebaseUser);
         const memberRef = doc(db, 'members', firebaseUser.uid);
         const snap = await getDoc(memberRef);
-        setMember(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+        if (snap.exists()) {
+          const data = snap.data();
+          // Update photoURL if missing but available from Google
+          if (!data.photoURL && firebaseUser.photoURL) {
+            import('firebase/firestore').then(({ updateDoc }) => {
+              updateDoc(memberRef, { photoURL: firebaseUser.photoURL }).catch(console.error);
+            });
+            data.photoURL = firebaseUser.photoURL;
+          }
+          setMember({ id: snap.id, ...data });
+        } else {
+          setMember(null);
+        }
       } else {
         setUser(null);
         setMember(null);
@@ -46,3 +58,4 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+

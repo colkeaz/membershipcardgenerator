@@ -71,6 +71,7 @@ export function exportToCSV(members, filename = 'ssc-al-members.csv') {
     membershipNumber: m.membershipNumber,
     fullName:         m.fullName,
     studentId:        m.studentId,
+    department:       m.department,
     program:          m.program || m.course,
     yearLevel:        m.yearLevel,
     schoolYear:       m.schoolYear,
@@ -78,7 +79,7 @@ export function exportToCSV(members, filename = 'ssc-al-members.csv') {
     status:           m.status,
     role:             m.role,
   }));
-  const fields = ['membershipNumber', 'fullName', 'studentId', 'program', 'yearLevel', 'schoolYear', 'semester', 'status', 'role'];
+  const fields = ['membershipNumber', 'fullName', 'studentId', 'department', 'program', 'yearLevel', 'schoolYear', 'semester', 'status', 'role'];
   const csv = Papa.unparse(formatted, { fields });
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);

@@ -27,10 +27,17 @@ export const CardFront = React.forwardRef(function CardFront({ member, isPreview
 
       {/* Body: chip + info */}
       <div className="card-body">
-        <div className="card-chip" aria-hidden="true">
-          <div className="chip-grid">
-            <span /><span /><span /><span />
-          </div>
+        <div className="card-photo-container">
+          {member?.photoURL ? (
+            <img src={member.photoURL} alt="Member" className="card-photo" referrerPolicy="no-referrer" />
+          ) : (
+            <div className="card-photo-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+          )}
         </div>
         <div className="card-member-info">
           <p className="card-member-name">{member?.fullName || 'FULL NAME'}</p>
@@ -80,37 +87,37 @@ export const CardFront = React.forwardRef(function CardFront({ member, isPreview
 export const CardBack = React.forwardRef(function CardBack({ member, qrDataUrl, isPreview = false }, ref) {
   return (
     <div className="card-face card-face-back" ref={ref}>
-      {/* Magnetic stripe */}
-      <div className="card-mag-stripe" aria-hidden="true" />
-
-      {/* QR & Certification section */}
+      <div className="card-back-grid-bg" aria-hidden="true" />
+      <div className="card-back-top-bar" aria-hidden="true" />
+      
       <div className="card-back-body">
-        <div className="card-qr-frame">
-          {qrDataUrl ? (
-            <img src={qrDataUrl} alt="Verification QR Code" className="card-qr-img" />
-          ) : (
-            <div className="card-qr-placeholder">
-              <div className="qr-shimmer" />
-            </div>
-          )}
+        <div className="card-back-left">
+          <div className="card-certification">
+            <p>THIS IS TO CERTIFY THAT THE PERSON WHOSE NAME, AND PHOTOGRAPH APPEARS HEREIN IS A DULY REGISTERED MEMBER OF THE SUPREME STUDENT COUNCIL OF BATANGAS STATE UNIVERSITY, THE NATIONAL ENGINEERING UNIVERSITY - ALANGILAN CAMPUS.</p>
+            <p>THIS IS TO CERTIFY FURTHER THAT THEY ARE A STUDENT IN GOOD STANDING THAT THEIR MEMBERSHIP HAS NOT BEEN SUSPENDED, REVOKED, OR WITHDRAWN.</p>
+          </div>
+          <div className="card-validity">
+            <span className="validity-label">VALIDITY:</span>
+            <div className="validity-box">FIRST SEMESTER</div>
+          </div>
         </div>
-        <div className="card-certification">
-          <p>THIS IS TO CERTIFY THAT THE PERSON WHOSE NAME, AND PHOTOGRAPH APPEARS HEREIN IS A DULY REGISTERED MEMBER OF THE SUPREME STUDENT COUNCIL OF BATANGAS STATE UNIVERSITY, THE NATIONAL ENGINEERING UNIVERSITY - ALANGILAN CAMPUS.</p>
-          <p>THIS IS TO CERTIFY FURTHER THAT THEY ARE A STUDENT IN GOOD STANDING THAT THEIR MEMBERSHIP HAS NOT BEEN SUSPENDED, REVOKED, OR WITHDRAWN.</p>
+        
+        <div className="card-back-right">
+          <div className="card-qr-frame">
+            {qrDataUrl ? (
+              <img src={qrDataUrl} alt="Verification QR Code" className="card-qr-img" />
+            ) : (
+              <div className="card-qr-placeholder">
+                <div className="qr-shimmer" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Bottom branding */}
-      <div className="card-back-footer">
-        <img src="/logo.jpg" alt="SSC-AL" className="card-back-logo" />
-        <div className="card-back-brand">
-          <span className="card-back-org">SSC · Alangilan Campus</span>
-          <span className="card-back-uni">Batangas State University The National Engineering University</span>
-        </div>
+      <div className="card-back-bottom-arc">
+        <span>SUPREME STUDENT COUNCIL - ALANGILAN</span>
       </div>
-
-      {/* Bottom gold stripe */}
-      <div className="card-gold-stripe" aria-hidden="true" />
 
       {/* Preview watermark */}
       {isPreview ? (
@@ -171,3 +178,4 @@ export default function MembershipCard({ member, qrDataUrl, autoFlip = false, is
     </div>
   );
 }
+

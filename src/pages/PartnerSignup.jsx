@@ -100,7 +100,7 @@ export default function PartnerSignup() {
             <div style={{ padding: '40px', textAlign: 'center' }}><Loader className="spin-icon" style={{ margin: '0 auto' }} /></div>
           ) : !user ? (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <p style={{ color: 'var(--color-text-muted)', marginBottom: '24px' }}>
+              <p style={{ color: 'var(--color-text-secondary)', marginBottom: '24px' }}>
                 Please sign in with your business Google account to continue with the partner application.
               </p>
               <button
@@ -176,3 +176,4 @@ export default function PartnerSignup() {
     </main>
   );
 }
+

@@ -68,8 +68,6 @@ export default function CardPage() {
 
   return (
     <main className="card-page">
-      <div className="card-page-bg" aria-hidden="true" />
-
       {/* Off-screen export targets — no 3D transforms, clean for html2canvas */}
       <div className="export-offscreen" aria-hidden="true">
         <CardFront ref={frontRef} member={member} />
@@ -77,20 +75,8 @@ export default function CardPage() {
       </div>
 
       <div className="container card-page-container">
-        {/* Header */}
-        <div className="card-page-header">
-          <h1 className="card-page-title">
-            Your <span className="text-gradient">Membership Card</span>
-          </h1>
-          <p className="card-page-sub">
-            {isActive   ? 'Your card is active — click to flip, then download.' : ''}
-            {isPending  ? 'Awaiting officer approval.' : ''}
-            {isInactive ? 'Your membership has been deactivated.' : ''}
-          </p>
-        </div>
-
-        {/* Interactive flip card */}
-        <div className="card-display-area">
+        {/* Left: card + export buttons */}
+        <div className="card-display-area animate-fade-up">
           {member ? (
             <div className="card-wrapper">
               <MembershipCard member={member} qrDataUrl={qrDataUrl} />
@@ -98,92 +84,105 @@ export default function CardPage() {
           ) : (
             <div className="card-skeleton" aria-label="Loading card" />
           )}
+
+          {/* Export actions */}
+          {(isActive || isInactive) && (
+            <div className="card-actions">
+              <button
+                id="btn-export-front-png"
+                className="btn btn-gold btn-sm"
+                onClick={() => handleExport('front-png')}
+                disabled={!!exporting}
+                aria-label="Download front as PNG"
+              >
+                {exporting === 'front-png'
+                  ? <><span className="spinner spinner-sm" /> Exporting…</>
+                  : <><FileImage size={14} aria-hidden="true" /> Front PNG</>}
+              </button>
+              <button
+                id="btn-export-back-png"
+                className="btn btn-outline btn-sm"
+                onClick={() => handleExport('back-png')}
+                disabled={!!exporting || !qrDataUrl}
+                aria-label="Download back as PNG"
+              >
+                {exporting === 'back-png'
+                  ? <><span className="spinner spinner-sm" /> Exporting…</>
+                  : <><RotateCcw size={14} aria-hidden="true" /> Back PNG</>}
+              </button>
+              <button
+                id="btn-export-pdf"
+                className="btn btn-outline btn-sm"
+                onClick={() => handleExport('pdf')}
+                disabled={!!exporting || !qrDataUrl}
+                aria-label="Download both sides as PDF"
+              >
+                {exporting === 'pdf'
+                  ? <><span className="spinner spinner-sm" /> Exporting…</>
+                  : <><Download size={14} aria-hidden="true" /> Both PDF</>}
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Status banners */}
-        {isPending && (
-          <div className="card-status-box card-status-pending">
-            <Clock size={18} />
-            <div>
-              <strong>Pending Approval</strong>
-              <p>An SSC-AL officer will review and activate your membership soon.</p>
-            </div>
+        {/* Right: header, status, info */}
+        <div className="animate-fade-up delay-1">
+          <div className="card-page-header">
+            <h1 className="card-page-title">Membership Card</h1>
+            <p className="card-page-sub">
+              {isActive   ? 'Your card is active. Click the card to flip it.' : ''}
+              {isPending  ? 'Awaiting officer approval.' : ''}
+              {isInactive ? 'Your membership has been deactivated.' : ''}
+            </p>
           </div>
-        )}
-        {isInactive && (
-          <div className="card-status-box card-status-inactive">
-            <Info size={20} className="card-status-icon-inactive" />
-            <div className="card-status-inactive-body">
-              <strong>Membership Inactive / Expired</strong>
-              <p>Your membership for the previous semester has expired. Please renew to re-activate your card for the current semester.</p>
-              <div className="card-renew-action">
-                <a
-                  href={RENEWAL_FORM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-primary btn-renew"
-                  id="btn-renew-membership"
-                >
-                  <ExternalLink size={16} /> Renew Membership
-                </a>
-                <span className="card-renew-note">
-                  Submitting the form and membership fee will notify officers to reactivate your existing SR-Code and Membership No.
-                </span>
+
+          {/* Status banners */}
+          {isPending && (
+            <div className="card-status-box card-status-pending" style={{ marginTop: 24 }}>
+              <Clock size={16} aria-hidden="true" />
+              <div>
+                <strong>Pending Approval</strong>
+                <p>An SSC-AL officer will review and activate your membership soon.</p>
               </div>
             </div>
-          </div>
-        )}
+          )}
+          {isInactive && (
+            <div className="card-status-box card-status-inactive" style={{ marginTop: 24 }}>
+              <Info size={18} className="card-status-icon-inactive" aria-hidden="true" />
+              <div className="card-status-inactive-body">
+                <strong>Membership Inactive</strong>
+                <p>Your membership has expired. Renew to re-activate your card.</p>
+                <div className="card-renew-action">
+                  <a
+                    href={RENEWAL_FORM_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary btn-sm btn-renew"
+                    id="btn-renew-membership"
+                  >
+                    <ExternalLink size={14} /> Renew Membership
+                  </a>
+                  <span className="card-renew-note">
+                    Submit the form and fee to reactivate your membership.
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
-        {/* Export actions */}
-        {(isActive || isInactive) && (
-          <div className="card-actions">
-            <button
-              id="btn-export-front-png"
-              className="btn btn-gold"
-              onClick={() => handleExport('front-png')}
-              disabled={!!exporting}
-              aria-label="Download front as PNG"
-            >
-              {exporting === 'front-png'
-                ? <><span className="spinner spinner-sm" /> Exporting…</>
-                : <><FileImage size={16} /> Front PNG</>}
-            </button>
-            <button
-              id="btn-export-back-png"
-              className="btn btn-outline"
-              onClick={() => handleExport('back-png')}
-              disabled={!!exporting || !qrDataUrl}
-              aria-label="Download back as PNG"
-            >
-              {exporting === 'back-png'
-                ? <><span className="spinner spinner-sm" /> Exporting…</>
-                : <><RotateCcw size={16} /> Back PNG</>}
-            </button>
-            <button
-              id="btn-export-pdf"
-              className="btn btn-outline"
-              onClick={() => handleExport('pdf')}
-              disabled={!!exporting || !qrDataUrl}
-              aria-label="Download both sides as PDF"
-            >
-              {exporting === 'pdf'
-                ? <><span className="spinner spinner-sm" /> Exporting…</>
-                : <><Download size={16} /> Both Sides PDF</>}
-            </button>
-          </div>
-        )}
-
-        {/* Info grid */}
-        {member && (
-          <div className="card-info-grid glass">
-            <InfoItem label="Full Name"      value={member.fullName} />
-            <InfoItem label="SR-Code"        value={member.studentId} mono />
-            <InfoItem label="Program"        value={member.program || member.course} />
-            <InfoItem label="Year Level"     value={member.yearLevel} />
-            <InfoItem label="Membership No." value={member.membershipNumber} gold />
-            <InfoItem label="School Year"    value={`${member.schoolYear} · ${member.semester}`} />
-          </div>
-        )}
+          {/* Info grid */}
+          {member && (
+            <div className="card-info-grid" style={{ marginTop: 24 }}>
+              <InfoItem label="Full Name"      value={member.fullName} />
+              <InfoItem label="SR-Code"        value={member.studentId} mono />
+              <InfoItem label="Department"     value={member.department} />
+              <InfoItem label="Program"        value={member.program || member.course} />
+              <InfoItem label="Year Level"     value={member.yearLevel} />
+              <InfoItem label="Membership No." value={member.membershipNumber} gold />
+              <InfoItem label="School Year"    value={`${member.schoolYear} · ${member.semester}`} />
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
@@ -221,3 +220,4 @@ async function exportBothAsPDF(frontRef, backRef, member) {
   const safeName = (member?.fullName || 'member').replace(/\s+/g, '_');
   pdf.save(`SSC-AL_Card_${safeName}.pdf`);
 }
+

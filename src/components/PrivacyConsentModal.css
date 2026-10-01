@@ -24,7 +24,7 @@
 .privacy-modal {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   max-width: 580px;
   width: 100%;
   max-height: 88vh;
@@ -80,7 +80,7 @@
 
 .privacy-modal-subtitle {
   font-size: 0.78rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 /* Body */
@@ -100,7 +100,7 @@
 
 .privacy-statement {
   font-size: 0.88rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   line-height: 1.8;
 }
 
@@ -119,7 +119,7 @@
 
 .privacy-statement p {
   margin-bottom: 12px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-size: 0.88rem;
 }
 
@@ -134,7 +134,7 @@
   padding-left: 20px;
   margin-bottom: 6px;
   font-size: 0.86rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   line-height: 1.65;
 }
 
@@ -157,7 +157,7 @@
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   margin: 16px 0;
   font-size: 0.84rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   line-height: 1.7;
 }
 
@@ -207,7 +207,7 @@
 
 .privacy-btn-decline {
   background: transparent;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
 }
 
@@ -219,7 +219,7 @@
 
 .privacy-consent-note {
   font-size: 0.72rem;
-  color: var(--color-text-dim);
+  color: var(--color-text-tertiary);
   text-align: center;
   line-height: 1.55;
 }
@@ -263,7 +263,7 @@
   border-radius: var(--radius-md);
   padding: 16px 20px;
   font-size: 0.86rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   line-height: 1.65;
 }
 
@@ -340,3 +340,4 @@
     flex-direction: column-reverse;
   }
 }
+

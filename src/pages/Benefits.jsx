@@ -186,11 +186,6 @@ export default function Benefits() {
 
   return (
     <main className="benefits">
-      {/* Ambient background glows */}
-      <div className="benefits-glow benefits-glow-1" aria-hidden="true" />
-      <div className="benefits-glow benefits-glow-2" aria-hidden="true" />
-      <div className="benefits-glow benefits-glow-3" aria-hidden="true" />
-
       <div className="benefits-content">
         {/* Top bar for unauthenticated users */}
         {!user && (
@@ -397,3 +392,4 @@ function PerkSection({ perk, reverse, delay }) {
     </div>
   );
 }
+

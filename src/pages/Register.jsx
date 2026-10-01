@@ -187,6 +187,7 @@ export default function Register() {
           privacyConsent:   true,
           privacyConsentAt: serverTimestamp(),
           createdAt:        serverTimestamp(),
+          photoURL:         user.photoURL || null,
         });
       });
 
@@ -347,3 +348,4 @@ export default function Register() {
     </main>
   );
 }
+

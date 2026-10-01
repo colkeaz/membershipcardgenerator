@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  collection, getDocs, doc, updateDoc, writeBatch,
+  collection, getDocs, doc, updateDoc, writeBatch, deleteDoc,
   query, orderBy, where, limit, startAfter,
 } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -12,7 +12,7 @@ import { parseCSV, exportToCSV } from '../utils/csvParser';
 import { generateMembershipNumber, getCurrentSchoolYear, getCurrentSemester } from '../utils/memberNumber';
 import {
   Users, CheckCircle, XCircle, Upload, Download,
-  Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Eye, X, AlertOctagon
+  Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Eye, X, AlertOctagon, Trash2
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import { signCard, buildVerifyUrl } from '../utils/cardSigning';
@@ -48,6 +48,14 @@ export default function AdminDashboard() {
   // Deactivate All modal
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [deactivatingAll, setDeactivatingAll]         = useState(false);
+
+  // Delete All modal
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [deletingAll, setDeletingAll]               = useState(false);
+
+  // Delete Single User modal
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [deletingUser, setDeletingUser] = useState(false);
 
   // Generate QR for preview card modal
   useEffect(() => {
@@ -106,7 +114,8 @@ export default function AdminDashboard() {
       || m.fullName?.toLowerCase().includes(q)
       || m.studentId?.toLowerCase().includes(q)
       || m.membershipNumber?.toLowerCase().includes(q)
-      || (m.program || m.course)?.toLowerCase().includes(q);
+      || (m.program || m.course)?.toLowerCase().includes(q)
+      || m.department?.toLowerCase().includes(q);
     return matchStatus && matchYear && matchSearch;
   });
 
@@ -173,6 +182,56 @@ export default function AdminDashboard() {
       toast('Failed to deactivate members. Please try again.', 'error');
     } finally {
       setDeactivatingAll(false);
+    }
+  };
+
+  // ── Delete All Members (Danger Zone) ──
+  const confirmDeleteAll = async () => {
+    setDeletingAll(true);
+    try {
+      if (members.length === 0) {
+        setShowDeleteAllModal(false);
+        return;
+      }
+      const BATCH_SIZE = 499;
+      for (let i = 0; i < members.length; i += BATCH_SIZE) {
+        const batch = writeBatch(db);
+        const chunk = members.slice(i, i + BATCH_SIZE);
+        chunk.forEach((m) => {
+          batch.delete(doc(db, 'members', m.id));
+        });
+        await batch.commit();
+      }
+      setMembers([]);
+      setStats({ total: 0, active: 0, pending: 0, inactive: 0 });
+      toast(`All ${members.length} members deleted successfully.`, 'success');
+      setShowDeleteAllModal(false);
+    } catch (err) {
+      console.error(err);
+      toast('Failed to delete members. Please try again.', 'error');
+    } finally {
+      setDeletingAll(false);
+    }
+  };
+  // ── Delete Single User ──
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    setDeletingUser(true);
+    try {
+      await deleteDoc(doc(db, 'members', userToDelete.id));
+      setMembers(prev => prev.filter(m => m.id !== userToDelete.id));
+      setStats(prev => ({
+        ...prev,
+        total: Math.max(0, prev.total - 1),
+        [userToDelete.status]: Math.max(0, prev[userToDelete.status] - 1),
+      }));
+      toast('Member deleted successfully.', 'success');
+      setUserToDelete(null);
+    } catch (err) {
+      console.error(err);
+      toast('Failed to delete member.', 'error');
+    } finally {
+      setDeletingUser(false);
     }
   };
 
@@ -278,15 +337,27 @@ export default function AdminDashboard() {
               <Upload size={15} /> Import CSV
             </button>
             {self?.role === 'admin' && (
-              <button
-                id="btn-deactivate-all"
-                className="btn btn-outline-danger btn-sm"
-                onClick={() => setShowDeactivateModal(true)}
-                disabled={loading || stats.active === 0}
-                title="Deactivate all active members when a new semester starts"
-              >
-                <AlertOctagon size={15} /> Deactivate All (New Term)
-              </button>
+              <>
+                <button
+                  id="btn-deactivate-all"
+                  className="btn btn-outline-danger btn-sm"
+                  onClick={() => setShowDeactivateModal(true)}
+                  disabled={loading || stats.active === 0}
+                  title="Deactivate all active members when a new semester starts"
+                >
+                  <AlertOctagon size={15} /> Deactivate All (New Term)
+                </button>
+                <button
+                  id="btn-delete-all"
+                  className="btn btn-outline-danger btn-sm"
+                  onClick={() => setShowDeleteAllModal(true)}
+                  disabled={loading || stats.total === 0}
+                  title="Delete all members permanently"
+                  style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}
+                >
+                  <XCircle size={15} /> Delete All Users
+                </button>
+              </>
             )}
             <input
               ref={fileInputRef}
@@ -322,7 +393,7 @@ export default function AdminDashboard() {
             />
           </div>
           <div className="admin-filter-group">
-            <Filter size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+            <Filter size={14} style={{ color: 'var(--color-text-secondary)', flexShrink: 0 }} />
             <select
               id="filter-status"
               className="form-select admin-select"
@@ -360,6 +431,7 @@ export default function AdminDashboard() {
                     <th>Member No.</th>
                     <th>Full Name</th>
                     <th>SR-Code</th>
+                    <th>Dept</th>
                     <th>Program</th>
                     <th>Year</th>
                     <th>Status</th>
@@ -370,7 +442,7 @@ export default function AdminDashboard() {
                 <tbody>
                   {paginated.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ textAlign:'center', color:'var(--color-text-dim)', padding:'40px' }}>
+                      <td colSpan={9} style={{ textAlign:'center', color:'var(--color-text-tertiary)', padding:'40px' }}>
                         No members found.
                       </td>
                     </tr>
@@ -383,7 +455,10 @@ export default function AdminDashboard() {
                       </td>
                       <td style={{ fontWeight:600 }}>{m.fullName}</td>
                       <td style={{ fontFamily:'monospace', fontSize:'0.85rem' }}>{m.studentId || '-'}</td>
-                      <td style={{ fontSize:'0.82rem', color:'var(--color-text-muted)', maxWidth:'160px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      <td style={{ fontSize:'0.82rem', color:'var(--color-text-secondary)' }}>
+                        {m.department || '-'}
+                      </td>
+                      <td style={{ fontSize:'0.82rem', color:'var(--color-text-secondary)', maxWidth:'160px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                         {m.program || m.course || '-'}
                       </td>
                       <td style={{ fontSize:'0.85rem' }}>{m.yearLevel || '-'}</td>
@@ -405,7 +480,7 @@ export default function AdminDashboard() {
                             <option value="partner">Partner</option>
                           </select>
                         ) : (
-                          <span style={{ fontSize:'0.82rem', color:'var(--color-text-muted)' }}>{m.role}</span>
+                          <span style={{ fontSize:'0.82rem', color:'var(--color-text-secondary)' }}>{m.role}</span>
                         )}
                       </td>
                       <td>
@@ -441,6 +516,18 @@ export default function AdminDashboard() {
                               aria-label={`Deactivate ${m.fullName}`}
                             >
                               <XCircle size={14} /> Deactivate
+                            </button>
+                          )}
+                          {/* Delete single user */}
+                          {self?.role === 'admin' && (
+                            <button
+                              className="btn btn-ghost btn-sm btn-icon"
+                              style={{ color: '#f87171' }}
+                              onClick={() => setUserToDelete(m)}
+                              title="Delete User"
+                              aria-label={`Delete ${m.fullName}`}
+                            >
+                              <Trash2 size={15} />
                             </button>
                           )}
                         </div>
@@ -492,19 +579,19 @@ export default function AdminDashboard() {
                 <X size={18} />
               </button>
             </div>
-            <p style={{ fontSize:'0.85rem', color:'var(--color-text-muted)', marginBottom:16 }}>
+            <p style={{ fontSize:'0.85rem', color:'var(--color-text-secondary)', marginBottom:16 }}>
               {csvPreview.length} member{csvPreview.length !== 1 ? 's' : ''} found in CSV. All will be imported as <strong>pending</strong>.
             </p>
             <div className="csv-preview-list">
               {csvPreview.slice(0, 10).map((m, i) => (
                 <div key={i} className="csv-preview-row">
                   <span style={{ fontWeight:600 }}>{m.fullName || '—'}</span>
-                  <span style={{ fontSize:'0.8rem', color:'var(--color-text-muted)' }}>{m.studentId}</span>
-                  <span style={{ fontSize:'0.8rem', color:'var(--color-text-dim)' }}>{m.program || m.course} · {m.yearLevel}</span>
+                  <span style={{ fontSize:'0.8rem', color:'var(--color-text-secondary)' }}>{m.studentId}</span>
+                  <span style={{ fontSize:'0.8rem', color:'var(--color-text-tertiary)' }}>{m.program || m.course} · {m.yearLevel}</span>
                 </div>
               ))}
               {csvPreview.length > 10 && (
-                <p style={{ fontSize:'0.8rem', color:'var(--color-text-dim)', textAlign:'center', padding:'8px 0' }}>
+                <p style={{ fontSize:'0.8rem', color:'var(--color-text-tertiary)', textAlign:'center', padding:'8px 0' }}>
                   …and {csvPreview.length - 10} more
                 </p>
               )}
@@ -558,7 +645,7 @@ export default function AdminDashboard() {
               <p style={{ fontSize:'0.9rem', lineHeight:1.5, margin:0 }}>
                 Are you sure you want to deactivate all <strong>{stats.active}</strong> currently active members?
               </p>
-              <div style={{ background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'12px', fontSize:'0.82rem', color:'var(--color-text-muted)', lineHeight:1.4 }}>
+              <div style={{ background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'12px', fontSize:'0.82rem', color:'var(--color-text-secondary)', lineHeight:1.4 }}>
                 <strong style={{ color:'#f87171', display:'block', marginBottom:4 }}>What will happen:</strong>
                 • Member cards will change to "Membership Inactive / Expired".<br/>
                 • Students will see a "Renew Membership" button directing to payment.<br/>
@@ -582,6 +669,84 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* ── Delete All Confirmation Modal ── */}
+      {showDeleteAllModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Confirm Delete All">
+          <div className="modal" style={{ maxWidth:'480px' }}>
+            <div className="modal-header">
+              <h2 style={{ fontSize:'1.15rem', color:'#f87171', display:'flex', alignItems:'center', gap:8 }}>
+                <AlertOctagon size={20} /> Delete All Users
+              </h2>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowDeleteAllModal(false)} aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ padding:'16px 0', display:'flex', flexDirection:'column', gap:12 }}>
+              <p style={{ fontSize:'0.9rem', lineHeight:1.5, margin:0 }}>
+                Are you absolutely sure you want to <strong>delete all {stats.total} members</strong>?
+              </p>
+              <div style={{ background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'12px', fontSize:'0.82rem', color:'var(--color-text-secondary)', lineHeight:1.4 }}>
+                <strong style={{ color:'#f87171', display:'block', marginBottom:4 }}>WARNING: DANGER ZONE</strong>
+                • This action cannot be undone.<br/>
+                • All member data, IDs, and card histories will be permanently destroyed.<br/>
+                • Users will need to register and pay again to get a new card.
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:12, justifyContent:'flex-end', marginTop:8 }}>
+              <button className="btn btn-outline" onClick={() => setShowDeleteAllModal(false)} disabled={deletingAll}>
+                Cancel
+              </button>
+              <button
+                id="btn-confirm-delete-all"
+                className="btn btn-danger"
+                onClick={confirmDeleteAll}
+                disabled={deletingAll}
+              >
+                {deletingAll ? <><span className="spinner spinner-sm" /> Deleting…</> : `Delete All Users`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Single User Confirmation Modal ── */}
+      {userToDelete && (
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Confirm Delete User">
+          <div className="modal" style={{ maxWidth:'400px' }}>
+            <div className="modal-header">
+              <h2 style={{ fontSize:'1.15rem', color:'#f87171', display:'flex', alignItems:'center', gap:8 }}>
+                <Trash2 size={20} /> Delete User
+              </h2>
+              <button className="btn btn-ghost btn-icon" onClick={() => setUserToDelete(null)} aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ padding:'16px 0', display:'flex', flexDirection:'column', gap:12 }}>
+              <p style={{ fontSize:'0.9rem', lineHeight:1.5, margin:0 }}>
+                Are you sure you want to permanently delete <strong>{userToDelete.fullName}</strong> ({userToDelete.studentId})?
+              </p>
+              <div style={{ background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'12px', fontSize:'0.82rem', color:'var(--color-text-secondary)', lineHeight:1.4 }}>
+                <strong style={{ color:'#f87171', display:'block', marginBottom:4 }}>WARNING:</strong>
+                This action cannot be undone. All data for this user will be permanently destroyed.
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:12, justifyContent:'flex-end', marginTop:8 }}>
+              <button className="btn btn-outline" onClick={() => setUserToDelete(null)} disabled={deletingUser}>
+                Cancel
+              </button>
+              <button
+                id="btn-confirm-delete-user"
+                className="btn btn-danger"
+                onClick={confirmDeleteUser}
+                disabled={deletingUser}
+              >
+                {deletingUser ? <><span className="spinner spinner-sm" /> Deleting…</> : `Delete User`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -600,3 +765,4 @@ function StatCard({ label, value, color }) {
     </div>
   );
 }
+
