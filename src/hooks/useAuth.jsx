@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db, googleProvider } from '../firebase';
-import { isValidUniversityEmail } from '../utils/validators';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { auth, db, studentGoogleProvider, partnerGoogleProvider } from '../firebase';
 
 const AuthContext = createContext(null);
 
@@ -21,9 +20,7 @@ export function AuthProvider({ children }) {
           const data = snap.data();
           // Update photoURL if missing but available from Google
           if (!data.photoURL && firebaseUser.photoURL) {
-            import('firebase/firestore').then(({ updateDoc }) => {
-              updateDoc(memberRef, { photoURL: firebaseUser.photoURL }).catch(console.error);
-            });
+            updateDoc(memberRef, { photoURL: firebaseUser.photoURL }).catch(e => { /* ignore */ });
             data.photoURL = firebaseUser.photoURL;
           }
           setMember({ id: snap.id, ...data });
@@ -39,9 +36,7 @@ export function AuthProvider({ children }) {
     return unsub;
   }, []);
 
-  const signInWithGoogle = async () => {
-    return await signInWithPopup(auth, googleProvider);
-  };
+  const signInWithGoogle = (isPartner = false) => signInWithPopup(auth, isPartner ? partnerGoogleProvider : studentGoogleProvider);
   const logout = () => signOut(auth);
 
   const refreshMember = async () => {

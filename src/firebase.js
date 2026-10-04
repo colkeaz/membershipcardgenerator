@@ -20,14 +20,13 @@ const app  = initializeApp(firebaseConfig);
 export const auth     = getAuth(app);
 export const db       = getFirestore(app);
 export const functions = getFunctions(app);
-export const googleProvider = new GoogleAuthProvider();
+export const studentGoogleProvider = new GoogleAuthProvider();
+studentGoogleProvider.setCustomParameters({ 
+  prompt: 'select_account' 
+});
 
-// Configure Google OAuth Provider
-// Note: hd is omitted by default so admin and testing accounts can sign in.
-// To strictly restrict Google account picker to university domain, set VITE_RESTRICT_DOMAIN=true in .env
-const googleParams = { prompt: 'select_account' };
-if (env.VITE_RESTRICT_DOMAIN === 'true') {
-  googleParams.hd = 'g.batstate-u.edu.ph';
-}
-googleProvider.setCustomParameters(googleParams);
+export const partnerGoogleProvider = new GoogleAuthProvider();
+partnerGoogleProvider.setCustomParameters({ 
+  prompt: 'select_account' 
+});
 

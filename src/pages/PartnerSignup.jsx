@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { doc, setDoc, getDoc, runTransaction } from 'firebase/firestore';
+import { doc, setDoc, runTransaction } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../components/ToastProvider';
-import { sanitizeInput } from '../utils/validators';
+import { sanitizeInput, validateContactNumber } from '../utils/validators';
 import { generateMembershipNumber, getCurrentSchoolYear, getCurrentSemester } from '../utils/memberNumber';
 import { Chrome, Loader } from 'lucide-react';
 import './Register.css'; // Reuse register CSS for consistent form styling
@@ -28,7 +28,8 @@ export default function PartnerSignup() {
     const err = {};
     if (!form.businessName.trim()) err.businessName = 'Business Name is required';
     if (!form.contactPerson.trim()) err.contactPerson = 'Contact Person is required';
-    if (!form.contactNumber.trim()) err.contactNumber = 'Contact Number is required';
+    const contactErr = validateContactNumber(form.contactNumber);
+    if (contactErr) err.contactNumber = contactErr;
     setErrors(err);
     return Object.keys(err).length === 0;
   };
@@ -75,7 +76,7 @@ export default function PartnerSignup() {
       
       // App.jsx will automatically redirect from /partner-signup to /verify since member exists
     } catch (err) {
-      console.error(err);
+      // if (import.meta.env.DEV) console.error(err);
       toast('Registration failed. Please try again.', 'error');
     } finally {
       setSubmitting(false);
@@ -88,7 +89,7 @@ export default function PartnerSignup() {
       <div className="container register-container">
         <div className="register-card glass" style={{ border: '1px solid rgba(255, 188, 1, 0.2)' }}>
           <div className="register-header">
-            <img src="/logo.jpg" alt="SSC-AL" className="register-logo partner-logo" />
+            <img src="/ssc-seal.jpg" alt="SSC-AL" className="register-logo partner-logo" />
             <div>
               <span className="partner-badge">Business Portal</span>
               <h1 className="register-title">Partner Application</h1>
@@ -109,7 +110,7 @@ export default function PartnerSignup() {
                 onClick={async () => {
                   setSigningIn(true);
                   try {
-                    await signInWithGoogle();
+                    await signInWithGoogle(true);
                   } catch (err) {
                     if (err?.code !== 'auth/popup-closed-by-user' && err?.code !== 'auth/cancelled-popup-request') {
                       toast('Sign in failed. Try again.', 'error');

@@ -1,8 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import MembershipCard, { CardFront, CardBack } from '../components/MembershipCard';
-import { exportCardAsPNG, exportCardAsPDF } from '../utils/cardExport';
-import { signCard, buildVerifyUrl } from '../utils/cardSigning';
+import { buildVerifyUrl } from '../utils/cardSigning';
 import { useToast } from '../components/ToastProvider';
 import { Download, FileImage, Clock, Info, RotateCcw, ExternalLink } from 'lucide-react';
 import QRCode from 'qrcode';
@@ -20,7 +19,6 @@ export default function CardPage() {
   const backRef  = useRef(null);
 
   const [qrDataUrl, setQrDataUrl] = useState('');
-  const [exporting, setExporting] = useState('');
 
   // Generate signed QR once member + user are loaded
   useEffect(() => {
@@ -28,8 +26,7 @@ export default function CardPage() {
     let cancelled = false;
     async function buildQR() {
       const targetUid = member.id || user.uid;
-      const sig = await signCard(member.membershipNumber, targetUid);
-      const url = buildVerifyUrl(member.membershipNumber, targetUid, sig);
+      const url = buildVerifyUrl(member.membershipNumber, targetUid);
       const dataUrl = await QRCode.toDataURL(url, {
         width: 180, margin: 1,
         color: { dark: '#1a0000', light: '#fff8f0' },
@@ -41,26 +38,7 @@ export default function CardPage() {
     return () => { cancelled = true; };
   }, [member, user]);
 
-  const handleExport = async (type) => {
-    setExporting(type);
-    try {
-      if (type === 'front-png') {
-        await exportCardAsPNG(frontRef, `SSC-AL_Card_Front_${member?.fullName?.replace(/\s+/g,'_')}.png`);
-        toast('Front card downloaded as PNG!', 'success');
-      } else if (type === 'back-png') {
-        await exportCardAsPNG(backRef, `SSC-AL_Card_Back_${member?.fullName?.replace(/\s+/g,'_')}.png`);
-        toast('Back card downloaded as PNG!', 'success');
-      } else if (type === 'pdf') {
-        await exportBothAsPDF(frontRef, backRef, member);
-        toast('Both sides downloaded as PDF!', 'success');
-      }
-    } catch (err) {
-      console.error(err);
-      toast('Export failed. Please try again.', 'error');
-    } finally {
-      setExporting('');
-    }
-  };
+
 
   const isPending  = member?.status === 'pending';
   const isInactive = member?.status === 'inactive';
@@ -89,60 +67,48 @@ export default function CardPage() {
           {(isActive || isInactive) && (
             <div className="card-actions">
               <button
-                id="btn-export-front-png"
-                className="btn btn-gold btn-sm"
-                onClick={() => handleExport('front-png')}
-                disabled={!!exporting}
-                aria-label="Download front as PNG"
-              >
-                {exporting === 'front-png'
-                  ? <><span className="spinner spinner-sm" /> Exporting…</>
-                  : <><FileImage size={14} aria-hidden="true" /> Front PNG</>}
-              </button>
-              <button
-                id="btn-export-back-png"
                 className="btn btn-outline btn-sm"
-                onClick={() => handleExport('back-png')}
-                disabled={!!exporting || !qrDataUrl}
-                aria-label="Download back as PNG"
+                onClick={() => window.print()}
+                aria-label="Print Card"
               >
-                {exporting === 'back-png'
-                  ? <><span className="spinner spinner-sm" /> Exporting…</>
-                  : <><RotateCcw size={14} aria-hidden="true" /> Back PNG</>}
-              </button>
-              <button
-                id="btn-export-pdf"
-                className="btn btn-outline btn-sm"
-                onClick={() => handleExport('pdf')}
-                disabled={!!exporting || !qrDataUrl}
-                aria-label="Download both sides as PDF"
-              >
-                {exporting === 'pdf'
-                  ? <><span className="spinner spinner-sm" /> Exporting…</>
-                  : <><Download size={14} aria-hidden="true" /> Both PDF</>}
+                <Download size={14} aria-hidden="true" /> Print / PDF
               </button>
             </div>
           )}
         </div>
 
         {/* Right: header, status, info */}
-        <div className="animate-fade-up delay-1">
+        <div className="card-info-area animate-fade-up delay-1">
           <div className="card-page-header">
-            <h1 className="card-page-title">Membership Card</h1>
+            <div className="card-page-badge">
+              <img src="/ssc-seal.jpg" alt="SSC Seal" className="card-page-badge-logo" />
+              <span>Supreme Student Council · Alangilan</span>
+            </div>
+
+            <div className="card-page-title-row">
+              <h1 className="card-page-title">Digital Membership Card</h1>
+              {isActive && (
+                <div className="card-status-pill status-active">
+                  <span className="status-live-dot" />
+                  <span>ACTIVE & VERIFIED</span>
+                </div>
+              )}
+            </div>
+            
             <p className="card-page-sub">
-              {isActive   ? 'Your card is active. Click the card to flip it.' : ''}
-              {isPending  ? 'Awaiting officer approval.' : ''}
-              {isInactive ? 'Your membership has been deactivated.' : ''}
+              {isActive   ? 'Your institutional membership is verified. Click the card to flip between front and back.' : ''}
+              {isPending  ? 'Awaiting verification and activation by an SSC-AL council officer.' : ''}
+              {isInactive ? 'Your membership has concluded or expired. Renew below to reactivate privileges.' : ''}
             </p>
           </div>
 
           {/* Status banners */}
           {isPending && (
-            <div className="card-status-box card-status-pending" style={{ marginTop: 24 }}>
-              <Clock size={16} aria-hidden="true" />
+            <div className="card-status-box card-status-pending">
+              <Clock size={18} aria-hidden="true" />
               <div>
-                <strong>Pending Approval</strong>
-                <p>An SSC-AL officer will review and activate your membership soon.</p>
+                <strong>Pending Officer Review</strong>
+                <p>An SSC-AL officer will verify your enrollment credentials and activate your membership shortly.</p>
               </div>
             </div>
           )}
@@ -199,25 +165,5 @@ function InfoItem({ label, value, gold, mono }) {
   );
 }
 
-/** Export front + back as a two-page PDF (landscape, credit-card size). */
-async function exportBothAsPDF(frontRef, backRef, member) {
-  const [html2canvas, { jsPDF }] = await Promise.all([
-    import('html2canvas').then(m => m.default),
-    import('jspdf'),
-  ]);
 
-  const opts = { scale: 3, useCORS: true, backgroundColor: null, logging: false };
-  const [frontCanvas, backCanvas] = await Promise.all([
-    html2canvas(frontRef.current, opts),
-    html2canvas(backRef.current, opts),
-  ]);
-
-  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [85.6, 54] });
-  pdf.addImage(frontCanvas.toDataURL('image/png'), 'PNG', 0, 0, 85.6, 54);
-  pdf.addPage([85.6, 54], 'landscape');
-  pdf.addImage(backCanvas.toDataURL('image/png'), 'PNG', 0, 0, 85.6, 54);
-
-  const safeName = (member?.fullName || 'member').replace(/\s+/g, '_');
-  pdf.save(`SSC-AL_Card_${safeName}.pdf`);
-}
 

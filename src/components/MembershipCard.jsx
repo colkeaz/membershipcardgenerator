@@ -10,62 +10,80 @@ export const CardFront = React.forwardRef(function CardFront({ member, isPreview
 
   return (
     <div className="card-face card-face-front" ref={ref}>
-      {/* Background layers */}
+      {/* Grid Background layer */}
       <div className="card-bg-pattern" aria-hidden="true" />
 
-      {/* Top row */}
-      <div className="card-top">
-        <div className="card-org">
-          <img src="/logo.jpg" alt="SSC-AL" className="card-logo" />
-          <div className="card-org-text">
-            <span className="card-org-name">SUPREME STUDENT COUNCIL</span>
-            <span className="card-org-campus">Batangas State University The National Engineering University</span>
+      {/* Top Banner */}
+      <div className="card-top-banner">
+        <img src="/logo-transparent.png" alt="SSC-AL" className="card-logo" />
+        <div className="card-org-text">
+          <span className="card-org-name">SUPREME STUDENT COUNCIL - ALANGILAN</span>
+          <span className="card-org-campus">BATANGAS STATE UNIVERSITY, THE NATIONAL ENGINEERING UNIVERSITY - ALANGILAN</span>
+        </div>
+      </div>
+
+      {/* Main Content (Middle) */}
+      <div className="card-body">
+        
+        {/* Profile Section (Photo + Name/Course) */}
+        <div className="card-profile-section">
+          <div className="card-photo-container">
+            {member?.photoURL ? (
+              <img src={member.photoURL} alt="Member" className="card-photo" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="card-photo-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+            )}
+          </div>
+          <div className="card-member-info">
+            <h2 className="card-member-name">
+              {(() => {
+                const name = (member?.fullName || 'PANGANIBAN, LIMUEL AMER ABDULAZIZ C.').trim();
+                const hasComma = name.includes(',');
+                const [last, first] = hasComma 
+                  ? [name.split(',')[0] + ',', name.split(',').slice(1).join(',').trim()] 
+                  : [name.split(' ').pop() + ',', name.split(' ').slice(0, -1).join(' ')];
+                return (
+                  <>
+                    <span className="card-last-name">{last}</span>
+                    <span className="card-first-name">{first}</span>
+                  </>
+                );
+              })()}
+            </h2>
+            <p className="card-sr-code">
+              SR-Code: <span className="card-sr-value">{member?.studentId || '23-06118'}</span>
+            </p>
+            <p className="card-course">
+              {member?.department && <span className="card-department-text">{member.department}</span>}
+              {member?.program || member?.course || 'Bachelor of Electrical Engineering'} - {member?.yearLevel || '4th Year'}
+            </p>
           </div>
         </div>
-        <span className="card-member-badge">MEMBER</span>
+
+        {/* Data Section (School Year + Member No) */}
+        <div className="card-data-section">
+          <div className="card-data-left">
+            <span className="card-label">SCHOOL YEAR</span>
+            <span className="card-value-dark">{member?.schoolYear || '2026-2027'} - {member?.semester || '1st Semester'}</span>
+            <span className="card-expiry-red">{expiry || 'Valid until Jan 2027'}</span>
+          </div>
+          <div className="card-data-right">
+            <span className="card-label">MEMBER NO.</span>
+            <span className="card-member-no-value">{member?.membershipNumber || 'SSC-2026-EE-00001'}</span>
+          </div>
+        </div>
+
       </div>
 
-      {/* Body: chip + info */}
-      <div className="card-body">
-        <div className="card-photo-container">
-          {member?.photoURL ? (
-            <img src={member.photoURL} alt="Member" className="card-photo" referrerPolicy="no-referrer" />
-          ) : (
-            <div className="card-photo-placeholder">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-            </div>
-          )}
-        </div>
-        <div className="card-member-info">
-          <p className="card-member-name">{member?.fullName || 'FULL NAME'}</p>
-          <p className="card-sr-code">
-            SR-Code:&nbsp;
-            <span className="card-sr-value">{member?.studentId || '24-XXXXX'}</span>
-          </p>
-          <p className="card-course">{member?.program || member?.course || 'Program'} · {member?.yearLevel || 'Year'}</p>
-        </div>
+      {/* Bottom Arched Banner */}
+      <div className="card-bottom-banner">
+        <span>MEMBERSHIP IDENTIFICATION CARD</span>
       </div>
-
-      {/* Footer */}
-      <div className="card-footer">
-        <div className="card-footer-left">
-          <span className="card-label">Member No.</span>
-          <span className="card-value card-member-number">
-            {member?.membershipNumber || 'SSC-AL-XXXX-XXXXX'}
-          </span>
-        </div>
-        <div className="card-footer-right">
-          <span className="card-label">School Year</span>
-          <span className="card-value">{member?.schoolYear || '20XX-20XX'} · {member?.semester || '—'}</span>
-          {expiry && <span className="card-expiry">{expiry}</span>}
-        </div>
-      </div>
-
-      {/* Bottom gold stripe */}
-      <div className="card-gold-stripe" aria-hidden="true" />
 
       {/* Preview watermark */}
       {isPreview ? (
@@ -85,6 +103,18 @@ export const CardFront = React.forwardRef(function CardFront({ member, isPreview
    CARD BACK
    ───────────────────────────────────────────── */
 export const CardBack = React.forwardRef(function CardBack({ member, qrDataUrl, isPreview = false }, ref) {
+  // A clean Sponsor Wall of EVERY SINGLE available partner logo (31 logos)
+  const ALL_PARTNERS = [
+    "shakeys.png", "Batangas_Country_Club.png", "dink_republic.png", "max_mango.png",
+    "lumino_photobooth.png", "NSP_Dental_Clinic.png", "southpeak_gardenandeventsplace.png",
+    "brighthub.png", "elan_pilates.png", "vertex_prints.png", "lckd_in.png",
+    "giga_print.png", "taho_story.png", "kwatogs.png", "jovan_cafe.png",
+    "hidden_cafe.png", "engineer_guides.png", "engineer_labs.png", "alaw_tiluk_lomi_house.png",
+    "zoerene_crafts.png", "butch_seafood_grill_restaurant.png", "Hungry_Hippo.png", 
+    "232cafe.png", "232_restaurant.png", "calq_enger_guides.png", "floof&fiction.png",
+    "taco_joes.png", "mango_grill.png", "appleville.png", "the_graden_cafe.png", "silver_peak.png"
+  ];
+
   return (
     <div className="card-face card-face-back" ref={ref}>
       <div className="card-back-grid-bg" aria-hidden="true" />
@@ -93,12 +123,18 @@ export const CardBack = React.forwardRef(function CardBack({ member, qrDataUrl, 
       <div className="card-back-body">
         <div className="card-back-left">
           <div className="card-certification">
-            <p>THIS IS TO CERTIFY THAT THE PERSON WHOSE NAME, AND PHOTOGRAPH APPEARS HEREIN IS A DULY REGISTERED MEMBER OF THE SUPREME STUDENT COUNCIL OF BATANGAS STATE UNIVERSITY, THE NATIONAL ENGINEERING UNIVERSITY - ALANGILAN CAMPUS.</p>
-            <p>THIS IS TO CERTIFY FURTHER THAT THEY ARE A STUDENT IN GOOD STANDING THAT THEIR MEMBERSHIP HAS NOT BEEN SUSPENDED, REVOKED, OR WITHDRAWN.</p>
+            <p>THIS CERTIFIES THAT THE BEARER IS A DULY REGISTERED MEMBER OF THE SUPREME STUDENT COUNCIL - ALANGILAN CAMPUS.</p>
           </div>
-          <div className="card-validity">
-            <span className="validity-label">VALIDITY:</span>
-            <div className="validity-box">FIRST SEMESTER</div>
+          
+          <div className="card-partners-section">
+            <span className="partners-label">AUTHORIZED PARTNER PRIVILEGES</span>
+            <div className="sponsor-wall-grid">
+              {ALL_PARTNERS.map((logo, i) => (
+                <div className="sponsor-wall-item" key={i}>
+                  <img src={`/partnership-logo/${logo}`} alt="Partner" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
         
@@ -111,6 +147,10 @@ export const CardBack = React.forwardRef(function CardBack({ member, qrDataUrl, 
                 <div className="qr-shimmer" />
               </div>
             )}
+          </div>
+          <div className="card-validity">
+            <span className="validity-label">VALIDITY</span>
+            <div className="validity-box">FIRST SEMESTER</div>
           </div>
         </div>
       </div>
@@ -151,8 +191,7 @@ export default function MembershipCard({ member, qrDataUrl, autoFlip = false, is
     if (!autoFlip) return;
     const flip = setTimeout(() => setFlipped(true), 2000);
     const unflip = setTimeout(() => setFlipped(false), 5000);
-    const repeat = setTimeout(() => { }, 8000); // reset handled by re-render
-    return () => { clearTimeout(flip); clearTimeout(unflip); clearTimeout(repeat); };
+    return () => { clearTimeout(flip); clearTimeout(unflip); };
   }, [autoFlip]);
 
   return (

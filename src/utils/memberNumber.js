@@ -33,23 +33,13 @@ export function generateMembershipNumber(sequence, role = 'member', department =
  * Returns school year string e.g. "2025-2026"
  */
 export function getCurrentSchoolYear() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1; // 1-12
-  if (month >= 6) {
-    return `${year}-${year + 1}`;
-  }
-  return `${year - 1}-${year}`;
+  const y = new Date().getFullYear() - (new Date().getMonth() < 5 ? 1 : 0);
+  return `${y}-${y + 1}`;
 }
 
-/**
- * Returns current semester based on month
- */
 export function getCurrentSemester() {
-  const month = new Date().getMonth() + 1;
-  if (month >= 8 && month <= 12) return '1st Semester';
-  if (month >= 1 && month <= 5)  return '2nd Semester';
-  return 'Summer';
+  const m = new Date().getMonth();
+  return m > 6 ? '1st Semester' : m < 5 ? '2nd Semester' : 'Summer';
 }
 
 /**

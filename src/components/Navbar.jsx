@@ -17,35 +17,45 @@ export default function Navbar() {
     navigate('/');
   };
 
-  if (!user) return null;
-
   return (
     <nav className="navbar" role="navigation" aria-label="Main navigation">
       <div className="container navbar-inner">
-        {/* Brand - navigates to landing page */}
-        <Link to="/benefits" className="navbar-brand" id="nav-brand" title="Benefits">
-          <img src="/logo.jpg" alt="SSC-AL" className="navbar-logo" />
-          <span className="navbar-title">SSC<span className="navbar-title-accent">-AL</span></span>
+        {/* Brand - navigates to landing/home page */}
+        <Link to="/" className="navbar-brand" id="nav-brand" title="Supreme Student Council - Alangilan">
+          <img src="/ssc-seal.jpg" alt="SSC-AL Official Seal" className="navbar-logo" />
+          <div className="navbar-brand-copy">
+            <span className="navbar-title">SSC <span className="navbar-title-red">ALANGILAN</span></span>
+            <span className="navbar-tagline">BatStateU · The National Engineering University</span>
+          </div>
         </Link>
 
         {/* Navigation links */}
         <div className="navbar-links">
           <Link
+            to="/"
+            className={`navbar-link ${location.pathname === '/' ? 'active' : ''}`}
+          >
+            <CreditCard size={15} />
+            <span>Home</span>
+          </Link>
+          <Link
             to="/benefits"
             id="nav-benefits"
             className={`navbar-link ${location.pathname === '/benefits' ? 'active' : ''}`}
           >
-            <Gift size={16} />
+            <Gift size={15} />
             <span>Benefits</span>
           </Link>
-          <Link
-            to="/card"
-            id="nav-card"
-            className={`navbar-link ${location.pathname === '/card' ? 'active' : ''}`}
-          >
-            <CreditCard size={16} />
-            <span>My Card</span>
-          </Link>
+          {user && (
+            <Link
+              to="/card"
+              id="nav-card"
+              className={`navbar-link ${location.pathname === '/card' ? 'active' : ''}`}
+            >
+              <CreditCard size={16} />
+              <span>My Card</span>
+            </Link>
+          )}
           {isOfficer && (
             <Link
               to="/admin"
@@ -69,19 +79,21 @@ export default function Navbar() {
         </div>
 
         {/* User info + sign out */}
-        <div className="navbar-user">
-          <span className="navbar-user-name">{user.displayName?.split(' ')[0]}</span>
-          <button
-            id="btn-logout"
-            className="btn btn-ghost btn-sm navbar-logout"
-            onClick={handleLogout}
-            title="Sign out"
-            aria-label="Sign out"
-          >
-            <LogOut size={16} />
-            <span className="navbar-logout-text">Sign Out</span>
-          </button>
-        </div>
+        {user && (
+          <div className="navbar-user">
+            <span className="navbar-user-name">{user.displayName?.split(' ')[0]}</span>
+            <button
+              id="btn-logout"
+              className="btn btn-ghost btn-sm navbar-logout"
+              onClick={handleLogout}
+              title="Sign out"
+              aria-label="Sign out"
+            >
+              <LogOut size={16} />
+              <span className="navbar-logout-text">Sign Out</span>
+            </button>
+          </div>
+        )}
       </div>
     </nav>
   );

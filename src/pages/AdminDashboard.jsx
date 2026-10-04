@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   collection, getDocs, doc, updateDoc, writeBatch, deleteDoc,
-  query, orderBy, where, limit, startAfter,
+  query, orderBy, limit,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../components/ToastProvider';
 import MembershipCard from '../components/MembershipCard';
-import { exportCardAsPNG } from '../utils/cardExport';
 import { parseCSV, exportToCSV } from '../utils/csvParser';
 import { generateMembershipNumber, getCurrentSchoolYear, getCurrentSemester } from '../utils/memberNumber';
 import {
@@ -15,7 +14,7 @@ import {
   Search, Filter, RefreshCw, ChevronLeft, ChevronRight, Eye, X, AlertOctagon, Trash2
 } from 'lucide-react';
 import QRCode from 'qrcode';
-import { signCard, buildVerifyUrl } from '../utils/cardSigning';
+import { buildVerifyUrl } from '../utils/cardSigning';
 import './AdminDashboard.css';
 
 const PAGE_SIZE = 25;
@@ -66,8 +65,7 @@ export default function AdminDashboard() {
     let cancelled = false;
     async function genPreviewQR() {
       try {
-        const sig = await signCard(previewMember.membershipNumber, previewMember.id);
-        const url = buildVerifyUrl(previewMember.membershipNumber, previewMember.id, sig);
+        const url = buildVerifyUrl(previewMember.membershipNumber, previewMember.id);
         const dataUrl = await QRCode.toDataURL(url, {
           width: 180, margin: 1,
           color: { dark: '#1a0000', light: '#fff8f0' },
@@ -304,13 +302,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // ── Card preview export ──
-  const handlePreviewExport = async () => {
-    try {
-      await exportCardAsPNG(previewCardRef, `SSC-AL_Card_${previewMember?.fullName?.replace(/\s+/g,'_')}.png`);
-      toast('Card downloaded!', 'success');
-    } catch { toast('Export failed.', 'error'); }
-  };
+
 
   return (
     <main className="admin-page">
@@ -621,9 +613,6 @@ export default function AdminDashboard() {
             </div>
             <div style={{ display:'flex', gap:12, justifyContent:'flex-end' }}>
               <button className="btn btn-outline" onClick={() => setPreviewMember(null)}>Close</button>
-              <button id="btn-download-preview-card" className="btn btn-gold btn-sm" onClick={handlePreviewExport}>
-                <Download size={15} /> Download PNG
-              </button>
             </div>
           </div>
         </div>
@@ -631,121 +620,70 @@ export default function AdminDashboard() {
 
       {/* ── Deactivate All Confirmation Modal ── */}
       {showDeactivateModal && (
-        <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Confirm Deactivate All">
-          <div className="modal" style={{ maxWidth:'480px' }}>
-            <div className="modal-header">
-              <h2 style={{ fontSize:'1.15rem', color:'#f87171', display:'flex', alignItems:'center', gap:8 }}>
-                <AlertOctagon size={20} /> Reset for New Semester
-              </h2>
-              <button className="btn btn-ghost btn-icon" onClick={() => setShowDeactivateModal(false)} aria-label="Close">
-                <X size={18} />
-              </button>
-            </div>
-            <div style={{ padding:'16px 0', display:'flex', flexDirection:'column', gap:12 }}>
-              <p style={{ fontSize:'0.9rem', lineHeight:1.5, margin:0 }}>
-                Are you sure you want to deactivate all <strong>{stats.active}</strong> currently active members?
-              </p>
-              <div style={{ background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'12px', fontSize:'0.82rem', color:'var(--color-text-secondary)', lineHeight:1.4 }}>
-                <strong style={{ color:'#f87171', display:'block', marginBottom:4 }}>What will happen:</strong>
-                • Member cards will change to "Membership Inactive / Expired".<br/>
-                • Students will see a "Renew Membership" button directing to payment.<br/>
-                • Their SR-Code and Member Number are preserved permanently.<br/>
-                • When an officer clicks "Approve" upon receiving proof of payment, their card immediately updates to the new semester!
-              </div>
-            </div>
-            <div style={{ display:'flex', gap:12, justifyContent:'flex-end', marginTop:8 }}>
-              <button className="btn btn-outline" onClick={() => setShowDeactivateModal(false)} disabled={deactivatingAll}>
-                Cancel
-              </button>
-              <button
-                id="btn-confirm-deactivate-all"
-                className="btn btn-danger"
-                onClick={confirmDeactivateAll}
-                disabled={deactivatingAll}
-              >
-                {deactivatingAll ? <><span className="spinner spinner-sm" /> Deactivating…</> : `Deactivate All (${stats.active})`}
-              </button>
-            </div>
+        <ConfirmModal
+          title="Reset for New Semester"
+          icon={AlertOctagon}
+          isDanger={true}
+          confirmText={`Deactivate All (${stats.active})`}
+          onConfirm={confirmDeactivateAll}
+          onCancel={() => setShowDeactivateModal(false)}
+          loading={deactivatingAll}
+        >
+          <p style={{ fontSize:'0.9rem', lineHeight:1.5, margin:0 }}>
+            Are you sure you want to deactivate all <strong>{stats.active}</strong> currently active members?
+          </p>
+          <div style={{ background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'12px', fontSize:'0.82rem', color:'var(--color-text-secondary)', lineHeight:1.4 }}>
+            <strong style={{ color:'#f87171', display:'block', marginBottom:4 }}>What will happen:</strong>
+            • Member cards will change to "Membership Inactive / Expired".<br/>
+            • Students will see a "Renew Membership" button directing to payment.<br/>
+            • Their SR-Code and Member Number are preserved permanently.<br/>
+            • When an officer clicks "Approve" upon receiving proof of payment, their card immediately updates to the new semester!
           </div>
-        </div>
+        </ConfirmModal>
       )}
 
       {/* ── Delete All Confirmation Modal ── */}
       {showDeleteAllModal && (
-        <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Confirm Delete All">
-          <div className="modal" style={{ maxWidth:'480px' }}>
-            <div className="modal-header">
-              <h2 style={{ fontSize:'1.15rem', color:'#f87171', display:'flex', alignItems:'center', gap:8 }}>
-                <AlertOctagon size={20} /> Delete All Users
-              </h2>
-              <button className="btn btn-ghost btn-icon" onClick={() => setShowDeleteAllModal(false)} aria-label="Close">
-                <X size={18} />
-              </button>
-            </div>
-            <div style={{ padding:'16px 0', display:'flex', flexDirection:'column', gap:12 }}>
-              <p style={{ fontSize:'0.9rem', lineHeight:1.5, margin:0 }}>
-                Are you absolutely sure you want to <strong>delete all {stats.total} members</strong>?
-              </p>
-              <div style={{ background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'12px', fontSize:'0.82rem', color:'var(--color-text-secondary)', lineHeight:1.4 }}>
-                <strong style={{ color:'#f87171', display:'block', marginBottom:4 }}>WARNING: DANGER ZONE</strong>
-                • This action cannot be undone.<br/>
-                • All member data, IDs, and card histories will be permanently destroyed.<br/>
-                • Users will need to register and pay again to get a new card.
-              </div>
-            </div>
-            <div style={{ display:'flex', gap:12, justifyContent:'flex-end', marginTop:8 }}>
-              <button className="btn btn-outline" onClick={() => setShowDeleteAllModal(false)} disabled={deletingAll}>
-                Cancel
-              </button>
-              <button
-                id="btn-confirm-delete-all"
-                className="btn btn-danger"
-                onClick={confirmDeleteAll}
-                disabled={deletingAll}
-              >
-                {deletingAll ? <><span className="spinner spinner-sm" /> Deleting…</> : `Delete All Users`}
-              </button>
-            </div>
+        <ConfirmModal
+          title="Delete All Users"
+          icon={AlertOctagon}
+          isDanger={true}
+          confirmText="Delete All Users"
+          onConfirm={confirmDeleteAll}
+          onCancel={() => setShowDeleteAllModal(false)}
+          loading={deletingAll}
+        >
+          <p style={{ fontSize:'0.9rem', lineHeight:1.5, margin:0 }}>
+            Are you absolutely sure you want to <strong>delete all {stats.total} members</strong>?
+          </p>
+          <div style={{ background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'12px', fontSize:'0.82rem', color:'var(--color-text-secondary)', lineHeight:1.4 }}>
+            <strong style={{ color:'#f87171', display:'block', marginBottom:4 }}>WARNING: DANGER ZONE</strong>
+            • This action cannot be undone.<br/>
+            • All member data, IDs, and card histories will be permanently destroyed.<br/>
+            • Users will need to register and pay again to get a new card.
           </div>
-        </div>
+        </ConfirmModal>
       )}
 
       {/* ── Delete Single User Confirmation Modal ── */}
       {userToDelete && (
-        <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Confirm Delete User">
-          <div className="modal" style={{ maxWidth:'400px' }}>
-            <div className="modal-header">
-              <h2 style={{ fontSize:'1.15rem', color:'#f87171', display:'flex', alignItems:'center', gap:8 }}>
-                <Trash2 size={20} /> Delete User
-              </h2>
-              <button className="btn btn-ghost btn-icon" onClick={() => setUserToDelete(null)} aria-label="Close">
-                <X size={18} />
-              </button>
-            </div>
-            <div style={{ padding:'16px 0', display:'flex', flexDirection:'column', gap:12 }}>
-              <p style={{ fontSize:'0.9rem', lineHeight:1.5, margin:0 }}>
-                Are you sure you want to permanently delete <strong>{userToDelete.fullName}</strong> ({userToDelete.studentId})?
-              </p>
-              <div style={{ background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'12px', fontSize:'0.82rem', color:'var(--color-text-secondary)', lineHeight:1.4 }}>
-                <strong style={{ color:'#f87171', display:'block', marginBottom:4 }}>WARNING:</strong>
-                This action cannot be undone. All data for this user will be permanently destroyed.
-              </div>
-            </div>
-            <div style={{ display:'flex', gap:12, justifyContent:'flex-end', marginTop:8 }}>
-              <button className="btn btn-outline" onClick={() => setUserToDelete(null)} disabled={deletingUser}>
-                Cancel
-              </button>
-              <button
-                id="btn-confirm-delete-user"
-                className="btn btn-danger"
-                onClick={confirmDeleteUser}
-                disabled={deletingUser}
-              >
-                {deletingUser ? <><span className="spinner spinner-sm" /> Deleting…</> : `Delete User`}
-              </button>
-            </div>
+        <ConfirmModal
+          title="Delete User"
+          icon={Trash2}
+          isDanger={true}
+          confirmText="Delete User"
+          onConfirm={confirmDeleteUser}
+          onCancel={() => setUserToDelete(null)}
+          loading={deletingUser}
+        >
+          <p style={{ fontSize:'0.9rem', lineHeight:1.5, margin:0 }}>
+            Are you sure you want to permanently delete <strong>{userToDelete.fullName}</strong> ({userToDelete.studentId})?
+          </p>
+          <div style={{ background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:'8px', padding:'12px', fontSize:'0.82rem', color:'var(--color-text-secondary)', lineHeight:1.4 }}>
+            <strong style={{ color:'#f87171', display:'block', marginBottom:4 }}>WARNING:</strong>
+            This action cannot be undone. All data for this user will be permanently destroyed.
           </div>
-        </div>
+        </ConfirmModal>
       )}
     </main>
   );
@@ -762,6 +700,30 @@ function StatCard({ label, value, color }) {
     <div className="stat-card glass">
       <span className="stat-value" style={{ color: colors[color] }}>{value}</span>
       <span className="stat-label">{label}</span>
+    </div>
+  );
+}
+
+function ConfirmModal({ title, icon: Icon, isDanger, children, confirmText, onConfirm, onCancel, loading }) {
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true">
+      <div className="modal" style={{ maxWidth: '480px' }}>
+        <div className="modal-header">
+          <h2 style={{ fontSize: '1.15rem', color: isDanger ? '#f87171' : 'inherit', display: 'flex', alignItems: 'center', gap: 8 }}>
+            {Icon && <Icon size={20} />} {title}
+          </h2>
+          <button className="btn btn-ghost btn-icon" onClick={onCancel}><X size={18} /></button>
+        </div>
+        <div style={{ padding: '16px 0', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {children}
+        </div>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 8 }}>
+          <button className="btn btn-outline" onClick={onCancel} disabled={loading}>Cancel</button>
+          <button className={`btn ${isDanger ? 'btn-danger' : 'btn-primary'}`} onClick={onConfirm} disabled={loading}>
+            {loading ? <><span className="spinner spinner-sm" /> Processing…</> : confirmText}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

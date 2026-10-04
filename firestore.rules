@@ -42,6 +42,10 @@ service cloud.firestore {
         && request.resource.data.fullName.size() > 0
         && request.resource.data.fullName.size() <= 100
         && (
+          request.auth.token.email.matches('.*@g\\.batstate-u\\.edu\\.ph') ||
+          request.auth.token.email in ['sscalangilan.storage@gmail.com', 'paala.luke24@gmail.com']
+        )
+        && (
           (
             request.resource.data.role == 'member'
             && request.resource.data.studentId is string

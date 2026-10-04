@@ -2,24 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import MembershipCard from '../components/MembershipCard';
-import { Chrome } from 'lucide-react';
+import { Chrome, ShieldCheck, ArrowRight, Sparkles, Building2 } from 'lucide-react';
 import './Landing.css';
 
-const DEMO_MEMBER = {
-  fullName: 'JUAN DELA CRUZ',
-  studentId: '2024-00001',
-  course: 'BS Computer Engineering',
-  yearLevel: '2nd Year',
-  membershipNumber: 'SSC-AL-2025-00001',
-  schoolYear: '2025-2026',
-  semester: '1st Semester',
-  status: 'active',
-};
-
-const DEMO_QR_TEXT = 'https://membershipcardgen.web.app/verify?preview=true';
+import { DEMO_MEMBER, DEMO_QR_TEXT } from '../utils/constants';
+import { isValidUniversityEmail } from '../utils/validators';
 
 export default function Landing() {
-  const { signInWithGoogle, user, member, loading } = useAuth();
+  const { signInWithGoogle, logout, user, member, loading } = useAuth();
   const navigate = useNavigate();
   const [signingIn, setSigningIn] = useState(false);
   const [demoQr, setDemoQr] = useState('');
@@ -27,8 +17,8 @@ export default function Landing() {
   useEffect(() => {
     import('qrcode').then(QRCode => {
       QRCode.toDataURL(DEMO_QR_TEXT, {
-        width: 90, margin: 1,
-        color: { dark: '#1a0000', light: '#fff8f0' },
+        width: 120, margin: 1,
+        color: { dark: '#08080A', light: '#FFFFFF' },
       }).then(setDemoQr);
     });
   }, []);
@@ -55,61 +45,79 @@ export default function Landing() {
       <div className="container landing-container">
         {/* Left: Content */}
         <div className="landing-content animate-fade-up">
-          {!user && (
-            <div className="landing-badge">
-              <img src="/logo.jpg" alt="" className="landing-badge-logo" />
-              <span>Supreme Student Council · Alangilan</span>
-            </div>
-          )}
+          <div className="landing-badge">
+            <img src="/ssc-seal.jpg" alt="SSC Seal" className="landing-badge-logo" />
+            <span className="landing-badge-text">Supreme Student Council • Alangilan</span>
+          </div>
 
-          <h1 className="landing-heading">
-            Digital Membership<br />
-            Card System
-          </h1>
+          <div className="landing-header-group">
+            <h1 className="landing-heading">
+              Your Campus<br />
+              <span className="title-red">Identity</span>, Upgraded.
+            </h1>
+          </div>
 
           <p className="landing-description">
             {user
-              ? 'Your digital membership card is ready. View or download it from the navigation.'
-              : 'Sign in with your BatStateU Google account to generate your official SSC-AL membership card.'}
+              ? 'Your official digital membership card is active. Access your credentials, verify partner perks, or download your card to your device.'
+              : 'Unlock exclusive discounts, VIP perks, and instantly prove your student status at over 30+ local establishments with the official SSC-AL Digital Membership Card.'}
           </p>
 
-          {!user ? (
+                    {user && !member && !isValidUniversityEmail(user.email) ? (
+            <div className="landing-actions" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+              <div style={{ color: 'var(--danger)', marginBottom: '12px', fontSize: '0.9rem', padding: '12px', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                <strong>Access Denied:</strong> {user.email} is not a valid BatStateU email. Please sign in using your official @g.batstate-u.edu.ph account.
+              </div>
+              <button className="btn btn-outline" onClick={logout}>
+                Sign out and try again
+              </button>
+            </div>
+          ) : !user ? (
             <div className="landing-actions">
               <button
                 id="btn-google-signin"
-                className="btn btn-gold btn-lg"
+                className="btn btn-primary landing-cta-btn"
                 onClick={handleSignIn}
                 disabled={signingIn || loading}
                 aria-label="Sign in with Google"
               >
                 {signingIn
-                  ? <><span className="spinner spinner-sm" /> Signing in…</>
-                  : <><Chrome size={18} aria-hidden="true" /> Continue with Google</>}
+                  ? <><span className="spinner spinner-sm" /> Authenticating...</>
+                  : <><Chrome size={18} aria-hidden="true" /> Continue with BatStateU Email</>}
               </button>
-              <p className="landing-footnote">
-                Use your <strong>@g.batstate-u.edu.ph</strong> account
-              </p>
-              <p className="landing-footnote">
-                Business Partner? <a href="/partner-signup">Apply here →</a>
-              </p>
+              
+              <div className="landing-sublinks">
+                <span className="landing-domain-pill">
+                  Must use your <strong>@g.batstate-u.edu.ph</strong> account
+                </span>
+                <div className="landing-secondary-links">
+                  <Link to="/benefits" className="landing-text-link">
+                    Explore Partner Benefits <ArrowRight size={14} />
+                  </Link>
+                  <span className="landing-link-sep">•</span>
+                  <Link to="/partner-signup" className="landing-text-link">
+                    Partner with us
+                  </Link>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="landing-actions">
               <button
                 id="btn-goto-card"
-                className="btn btn-gold btn-lg"
+                className="btn btn-primary landing-cta-btn"
                 onClick={() => navigate(member ? '/card' : '/register')}
               >
-                {member ? 'View My Card →' : 'Complete Registration →'}
+                {member ? 'View My Card' : 'Complete Registration'} <ArrowRight size={18} />
               </button>
               <p className="landing-footnote">
-                Signed in as {user.displayName || user.email}
+                Signed in as <strong className="user-email-tag">{user.displayName || user.email}</strong>
               </p>
             </div>
           )}
         </div>
 
-        {/* Right: Card preview */}
+        {/* Right: Floating Card */}
         <div className="landing-card-area animate-fade-up delay-1">
           <MembershipCard
             member={user && member ? member : DEMO_MEMBER}
@@ -122,4 +130,5 @@ export default function Landing() {
     </main>
   );
 }
+
 

@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
-import { verifyCard } from '../utils/cardSigning';
+// removed verifyCard import
 import { CheckCircle, XCircle, AlertTriangle, Loader, Search } from 'lucide-react';
 import './VerifyPage.css';
 
@@ -18,15 +18,14 @@ export default function VerifyPage() {
   const [params] = useSearchParams();
   const mn  = params.get('mn');
   const uid = params.get('uid');
-  const sig = params.get('sig');
-
-  const [status, setStatus] = useState(!mn || !uid || !sig ? 'idle' : 'loading'); // 'idle' | 'loading' | 'valid' | 'invalid' | 'inactive' | 'error'
+  const [status, setStatus] = useState(!mn || !uid ? 'idle' : 'loading'); // 'idle' | 'loading' | 'valid' | 'invalid' | 'inactive' | 'error'
   const [member, setMember] = useState(null);
-  const [manualMn, setManualMn] = useState('');
+  const currentYear = new Date().getFullYear();
+  const [manualMn, setManualMn] = useState(`SSC-${currentYear}-`);
   const [manualError, setManualError] = useState('');
 
   useEffect(() => {
-    if (!mn || !uid || !sig) {
+    if (!mn || !uid) {
       if (params.get('preview') !== 'true') {
         setStatus('idle');
       }
@@ -42,32 +41,7 @@ export default function VerifyPage() {
     let cancelled = false;
     async function verify() {
       try {
-        // Fixed: HIGH-03 Try server-side verification first to avoid exposing full member PII
-        if (functions) {
-          try {
-            const verifyFn = httpsCallable(functions, 'verifyMembership');
-            const res = await verifyFn({ mn, uid, sig });
-            if (res?.data) {
-              if (!res.data.valid) {
-                if (!cancelled) setStatus('invalid');
-                return;
-              }
-              if (!cancelled) {
-                setMember(res.data);
-                setStatus(res.data.status === 'active' ? 'valid' : 'inactive');
-              }
-              return;
-            }
-          } catch {
-            // Function not yet deployed or error — proceed with local fallback
-          }
-        }
-
-        // Fallback Step 1: HMAC check — signature must match
-        const sigValid = await verifyCard(mn, uid, sig);
-        if (!sigValid) { if (!cancelled) setStatus('invalid'); return; }
-
-        // Fallback Step 2: Firestore lookup — member must exist
+        // Step 1: Firestore lookup — member must exist
         const snap = await getDoc(doc(db, 'members', uid));
         if (!snap.exists()) { if (!cancelled) setStatus('invalid'); return; }
 
@@ -81,21 +55,40 @@ export default function VerifyPage() {
           setStatus(data.status === 'active' ? 'valid' : 'inactive');
         }
       } catch (err) {
-        console.error(err);
+        // if (import.meta.env.DEV) console.error(err);
         if (!cancelled) setStatus('error');
       }
     }
 
     verify();
     return () => { cancelled = true; };
-  }, [mn, uid, sig, params]);
+  }, [mn, uid, params]);
 
   const handleManualSearch = async (e) => {
     e.preventDefault();
-    const trimmedMn = manualMn.trim();
+    let trimmedMn = manualMn.trim().toUpperCase();
     if (!trimmedMn) return;
 
+    const currentYear = new Date().getFullYear();
+    // 1) If physical scanner duplicates the prefix because input already had "SSC-2026-"
+    if (trimmedMn.startsWith(`SSC-${currentYear}-SSC-`)) {
+      trimmedMn = trimmedMn.substring(`SSC-${currentYear}-`.length);
+      setManualMn(trimmedMn);
+    }
+    
+    // 2) If admin only typed the specific code: e.g. "EE-00001" or "PARTNER-00001"
+    if (/^[A-Z0-9]+-\d{5}$/.test(trimmedMn)) {
+      trimmedMn = `SSC-${currentYear}-${trimmedMn}`;
+      setManualMn(trimmedMn);
+    }
+
     setManualError('');
+    const MEMBERSHIP_NO_REGEX = /^SSC-\d{4}-[A-Z0-9]+-\d{5}$/;
+    if (!MEMBERSHIP_NO_REGEX.test(trimmedMn)) {
+      setManualError(`Invalid format. Expected: SSC-${currentYear}-DEPT-00001`);
+      return;
+    }
+
     setStatus('loading');
     try {
       const q = query(collection(db, 'members'), where('membershipNumber', '==', trimmedMn));
@@ -122,10 +115,10 @@ export default function VerifyPage() {
         <div className="verify-card glass">
           {/* Org header */}
           <div className="verify-org">
-            <img src="/logo.jpg" alt="SSC-AL" className="verify-logo" />
+            <img src="/ssc-seal.jpg" alt="SSC-AL Official Seal" className="verify-logo" />
             <div>
-              <span className="verify-org-name">Supreme Student Council</span>
-              <span className="verify-org-campus">Alangilan Campus · BatStateU</span>
+              <span className="verify-org-name">Supreme Student Council · Alangilan</span>
+              <span className="verify-org-campus">Batangas State University · The National Engineering University</span>
             </div>
           </div>
 

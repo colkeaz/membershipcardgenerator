@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { ToastProvider } from './components/ToastProvider';
 import Navbar from './components/Navbar';
@@ -20,7 +20,7 @@ function AppRoutes() {
   if (loading) {
     return (
       <div className="page-loader">
-        <img src="/logo.jpg" alt="SSC-AL" style={{ width: 64, height: 64, borderRadius: '50%', marginBottom: 16 }} />
+        <img src="/ssc-seal.jpg" alt="SSC-AL" style={{ width: 64, height: 64, borderRadius: '50%', border: '2px solid var(--color-brand-red)', marginBottom: 16 }} />
         <div className="spinner" />
       </div>
     );

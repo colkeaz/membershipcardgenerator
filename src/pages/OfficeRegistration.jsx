@@ -11,7 +11,6 @@ import {
   Home,
   Sparkles,
   Mail,
-  FileCheck2,
 } from 'lucide-react';
 import './OfficeRegistration.css';
 

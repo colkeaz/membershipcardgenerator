@@ -182,8 +182,8 @@ export default function Register() {
           membershipNumber,
           schoolYear:       getCurrentSchoolYear(),
           semester:         getCurrentSemester(),
-          status:           'pending',
-          role:             'member',
+          status:           WHITELISTED_EMAILS.includes((user.email || '').trim().toLowerCase()) ? 'active' : 'pending',
+          role:             WHITELISTED_EMAILS.includes((user.email || '').trim().toLowerCase()) ? 'admin' : 'member',
           privacyConsent:   true,
           privacyConsentAt: serverTimestamp(),
           createdAt:        serverTimestamp(),
@@ -195,7 +195,7 @@ export default function Register() {
       toast('Registration submitted! Awaiting officer approval.', 'success');
       navigate('/card');
     } catch (err) {
-      console.error(err);
+      // if (import.meta.env.DEV) console.error(err);
       toast('Registration failed. Please try again.', 'error');
     } finally {
       setLoading(false);
@@ -217,7 +217,7 @@ export default function Register() {
         <div className="register-card glass">
           {/* Header */}
           <div className="register-header">
-            <img src="/logo.jpg" alt="SSC-AL" className="register-logo" />
+            <img src="/ssc-seal.jpg" alt="SSC-AL" className="register-logo" />
             <div>
               <h1 className="register-title">Join SSC-AL</h1>
               <p className="register-sub">Complete your membership registration</p>

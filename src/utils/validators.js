@@ -58,3 +58,11 @@ export function sanitizeInput(val, maxLen = 100) {
     .replace(/[<>]/g, '') // Strip HTML tags/delimiters
     .slice(0, maxLen);
 }
+
+// Fixed: FIND-04 Contact Number format validation
+export const PH_PHONE_REGEX = /^(\+63|0)9\d{9}$/;
+export function validateContactNumber(num) {
+  if (!num || !num.trim()) return 'Contact number is required';
+  if (!PH_PHONE_REGEX.test(num.trim())) return 'Enter a valid PH mobile number (e.g. 09123456789)';
+  return null;
+}

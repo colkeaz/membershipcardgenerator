@@ -1,24 +1,15 @@
 /**
- * Anti-forgery card signing using HMAC-SHA256.
- *
- * Security Patches:
- * - Fixed: CRIT-02 Client-Side HMAC Secret — Card Forgery as per audit
- *   Delegates signing to a server-side Firebase Cloud Function when available,
- *   with safe automatic fallback for local frontend development.
- * - Fixed: INFO-01 Hardcoded fallback secret as per audit
- *   Removed weak 'ssc-al-fallback-dev-secret'. Requires explicit secret configuration.
+ * Anti-forgery card signing using HMAC-SHA256 (Web Crypto API).
+ * Provides server-side/local fallback HMAC verification and URL building.
  */
 
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase.js';
 
-// Fixed: INFO-01 Hardcoded fallback secret as per audit
-// Read HMAC secret from environment without weak hardcoded fallback
 const CLIENT_SECRET = (typeof import.meta !== 'undefined' && import.meta.env)
   ? import.meta.env.VITE_CARD_HMAC_SECRET
-  : (typeof process !== 'undefined' ? process.env.VITE_CARD_HMAC_SECRET : undefined);
+  : (typeof process !== 'undefined' ? process.env?.VITE_CARD_HMAC_SECRET : undefined);
 
-// Helper to get crypto subtle instance in both browser and modern Node environments
 function getCryptoSubtle() {
   if (typeof globalThis !== 'undefined' && globalThis.crypto?.subtle) {
     return globalThis.crypto.subtle;
@@ -56,12 +47,8 @@ export async function computeLocalSignature(membershipNumber, uid, secret = CLIE
 
 /**
  * Returns a 40-char hex HMAC signature for a given membership number + uid.
- * Fixed: CRIT-02 Client-Side HMAC Secret as per audit
- * First attempts to sign via Firebase Cloud Function (server-side secret).
- * Automatically falls back to local signing if Cloud Functions are not deployed.
  */
 export async function signCard(membershipNumber, uid) {
-  // Attempt server-side signing via Cloud Function if initialized
   if (functions) {
     try {
       const signCardFn = httpsCallable(functions, 'signCard');
@@ -70,17 +57,15 @@ export async function signCard(membershipNumber, uid) {
         return response.data.sig;
       }
     } catch {
-      // Cloud Function not yet deployed or error — fall back to local signing for development
+      // Cloud Function not yet deployed or error — fall back to local signing
     }
   }
 
-  // Fallback to local signing
   return computeLocalSignature(membershipNumber, uid);
 }
 
 /**
  * Verify a signature — used on the /verify page or by officers.
- * Compares computed signature against provided signature.
  */
 export async function verifyCard(membershipNumber, uid, sig) {
   if (!sig || typeof sig !== 'string') return false;
@@ -99,6 +84,9 @@ export function buildVerifyUrl(membershipNumber, uid, sig) {
   const origin = (typeof window !== 'undefined' && window.location?.origin)
     ? window.location.origin
     : 'http://localhost:5173';
-  const params = new URLSearchParams({ mn: membershipNumber, uid, sig });
+  const params = new URLSearchParams({ mn: membershipNumber, uid });
+  if (sig) {
+    params.set('sig', sig);
+  }
   return `${origin}/verify?${params.toString()}`;
 }
