@@ -8,8 +8,9 @@
 }
 
 .card-skeleton {
-  width: 420px;
-  height: 265px;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 420 / 265;
   border-radius: var(--radius-md);
   background: var(--color-surface);
   border: 1px solid var(--color-border);

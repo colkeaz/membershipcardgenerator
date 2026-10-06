@@ -174,12 +174,17 @@
   }
   .navbar-brand-copy { display: none; }
   .navbar-link {
-    padding: 6px 12px;
+    padding: 6px 10px;
     font-size: 0.75rem;
   }
   .navbar-links {
-    gap: 4px;
+    gap: 2px;
     padding: 0 4px;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+  }
+  .navbar-links::-webkit-scrollbar {
+    display: none; /* Safari/Chrome */
   }
   .navbar-user-name { display: none; }
   .navbar-logout-text { display: none; }

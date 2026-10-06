@@ -13,6 +13,8 @@ import VerifyPage from './pages/VerifyPage';
 import Benefits from './pages/Benefits';
 import OfficeRegistration from './pages/OfficeRegistration';
 import PartnerSignup from './pages/PartnerSignup';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 
 function AppRoutes() {
   const { user, member, loading } = useAuth();
@@ -73,6 +75,10 @@ function AppRoutes() {
         {/* Public — In-person office registration instructions */}
         <Route path="/office-registration" element={<OfficeRegistration />} />
         <Route path="/manual-registration" element={<Navigate to="/office-registration" replace />} />
+        
+        {/* Legal Pages */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Footer />
