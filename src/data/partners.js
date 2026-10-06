@@ -1,7 +1,7 @@
 export const partnersData = [
   {
     "id": "shakey-s",
-    "name": "Shakey’s",
+    "name": "Shakey's",
     "logo": "/partnership-logo/shakeys.png",
     "benefit": "10% OFF",
     "span": {
@@ -165,7 +165,7 @@ export const partnersData = [
     ]
   },
   {
-    "id": "-lan-pilates-studio",
+    "id": "elan-pilates-studio",
     "name": "Élan Pilates Studio",
     "logo": "/partnership-logo/elan_pilates.png",
     "benefit": "Up to 13.65% OFF",
@@ -372,8 +372,8 @@ export const partnersData = [
     "branches": [
       "SM City Batangas",
       "UB Lipa City, Batangas",
-      "Food Truck – KM 36 SLEX",
-      "Food Truck – Caltex Tanauan"
+      "Food Truck - KM 36 SLEX",
+      "Food Truck - Caltex Tanauan"
     ],
     "conditions": [
       "A valid SSC Membership Card must be presented to avail of the discount.",
@@ -408,8 +408,8 @@ export const partnersData = [
     ]
   },
   {
-    "id": "232-caf-",
-    "name": "232 Café",
+    "id": "232-cafe",
+    "name": "232 Cafe",
     "logo": "/partnership-logo/232cafe.png",
     "benefit": "10% OFF",
     "span": {
@@ -430,7 +430,7 @@ export const partnersData = [
   },
   {
     "id": "232-restaurant-taco-joe-s",
-    "name": "232 Restaurant / Taco Joe’s",
+    "name": "232 Restaurant / Taco Joe's",
     "logo": "/partnership-logo/232_restaurant.png",
     "benefit": "10% OFF",
     "span": {
@@ -467,7 +467,7 @@ export const partnersData = [
   },
   {
     "id": "appleville",
-    "name": "Appleville",
+    "name": "AppleVille",
     "logo": "/partnership-logo/appleville.png",
     "benefit": "10% OFF",
     "span": {
@@ -484,7 +484,7 @@ export const partnersData = [
   },
   {
     "id": "floof&fiction",
-    "name": "Floof&Fiction",
+    "name": "Floof & Fiction",
     "logo": "/partnership-logo/floof&fiction.png",
     "benefit": "Exclusive Perks",
     "span": {
@@ -530,9 +530,9 @@ export const partnersData = [
     ]
   },
   {
-    "id": "the_graden_cafe",
-    "name": "The Graden Cafe",
-    "logo": "/partnership-logo/the_graden_cafe.png",
+    "id": "the_garden_cafe",
+    "name": "The Garden Cafe",
+    "logo": "/partnership-logo/the_garden_cafe.png",
     "benefit": "10% OFF",
     "span": {
       "col": 4,
