@@ -22,8 +22,8 @@
   --color-border-brand: rgba(200, 16, 46, 0.4);
   --color-border-gold: rgba(255, 199, 0, 0.35);
   --color-text: #ffffff;
-  --color-text-secondary: rgba(255,255,255,0.6);
-  --color-text-tertiary: rgba(255,255,255,0.4);
+  --color-text-secondary: rgba(255,255,255,0.75);
+  --color-text-tertiary: rgba(255,255,255,0.55);
   --color-primary: var(--color-brand-red);
   --color-accent: var(--color-brand-red);
   --color-gold: var(--color-brand-gold);
@@ -117,7 +117,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 800;
   line-height: 1.15;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.01em;
   color: var(--color-text);
 }
 

@@ -60,7 +60,7 @@ export default function Landing() {
           <p className="landing-description">
             {user
               ? 'Your official digital membership card is active. Access your credentials, verify partner perks, or download your card to your device.'
-              : 'Unlock exclusive discounts, VIP perks, and instantly prove your student status at over 30+ local establishments with the official SSC-AL Digital Membership Card.'}
+              : 'Unlock exclusive discounts, VIP perks, and instantly prove your student status at over 30 local establishments with the official SSC-AL Digital Membership Card.'}
           </p>
 
                     {user && !member && !isValidUniversityEmail(user.email) ? (

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, X, MapPin } from 'lucide-react';
+import { Plus, X, MapPin } from 'lucide-react';
 import './Benefits.css';
 import { partnersData } from '../data/partners.js';
 
@@ -76,7 +76,7 @@ export default function Benefits() {
                 </div>
                 <div className="button-in-button">
                   <span className="icon-wrapper">
-                    <ArrowUpRight size={16} strokeWidth={1.5} />
+                    <Plus size={16} strokeWidth={1.5} />
                   </span>
                 </div>
               </div>
@@ -97,7 +97,7 @@ export default function Benefits() {
             </div>
             <div className="partner-modal-body">
               <h2 className="partner-modal-title">{activePartner.name}</h2>
-              <p className="partner-modal-benefit">{activePartner.benefit}</p>
+              <div className="partner-modal-benefit-badge">{activePartner.benefit}</div>
               
                             <div className="partner-modal-conditions-box">
                 {activePartner.branches && activePartner.branches.length > 0 && (
@@ -120,6 +120,10 @@ export default function Benefits() {
                 </ul>
               </div>
             </div>
+              <div className="partner-modal-footer">
+                <span className="partner-modal-footer-title">How to redeem</span>
+                <span className="partner-modal-footer-text">Present your active SSC-AL Digital Card upon transaction</span>
+              </div>
           </div>
         </div>
       )}

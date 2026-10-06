@@ -19,7 +19,7 @@ export const partnersData = [
     "conditions": [
       "A valid SSC Membership Card must be presented to avail of the discount.",
       "The discount applies to regular-priced items only and is subject to the store's existing policies and guidelines.",
-      "Items or transactions covered by existing discounts, special offers, or promotions may be excluded from the additional 10% discount.",
+      "Items or transactions covered by existing discounts, special offers, or promotions may be excluded from the discount.",
       "For dine-in transactions, the qualified student must be personally present and present the membership card before availing of the discount.",
       "Only one discount may be availed per transaction.",
       "Only one valid ID with a corresponding discount privilege may be used per transaction. Combining discounts from multiple IDs is prohibited.",
@@ -352,7 +352,7 @@ export const partnersData = [
     "conditions": [
       "A valid SSC Membership Card must be presented to avail of the discount.",
       "The discount applies to regular-priced items only and is subject to the store's existing policies and guidelines.",
-      "Items or transactions covered by existing discounts, special offers, or promotions may be excluded from the additional 10% discount.",
+      "Items or transactions covered by existing discounts, special offers, or promotions may be excluded from the discount.",
       "For dine-in transactions, the qualified student must be personally present and present the membership card before availing of the discount.",
       "Only one discount may be availed per transaction.",
       "Only one valid ID with a corresponding discount privilege may be used per transaction. Combining discounts from multiple IDs is prohibited.",
@@ -378,7 +378,7 @@ export const partnersData = [
     "conditions": [
       "A valid SSC Membership Card must be presented to avail of the discount.",
       "The discount applies to regular-priced items only and is subject to the store's existing policies and guidelines.",
-      "Items or transactions covered by existing discounts, special offers, or promotions may be excluded from the additional 10% discount.",
+      "Items or transactions covered by existing discounts, special offers, or promotions may be excluded from the discount.",
       "For dine-in transactions, the qualified student must be personally present and present the membership card before availing of the discount.",
       "Only one discount may be availed per transaction.",
       "Only one valid ID with a corresponding discount privilege may be used per transaction. Combining discounts from multiple IDs is prohibited.",
@@ -399,7 +399,7 @@ export const partnersData = [
     "conditions": [
       "A valid SSC Membership Card must be presented to avail of the discount.",
       "The discount applies to regular-priced items only and is subject to the store's existing policies and guidelines.",
-      "Items or transactions covered by existing discounts, special offers, or promotions may be excluded from the additional 10% discount.",
+      "Items or transactions covered by existing discounts, special offers, or promotions may be excluded from the discount.",
       "For dine-in transactions, the qualified student must be personally present and present the membership card before availing of the discount.",
       "Only one discount may be availed per transaction.",
       "Only one valid ID with a corresponding discount privilege may be used per transaction. Combining discounts from multiple IDs is prohibited.",
@@ -420,7 +420,7 @@ export const partnersData = [
     "conditions": [
       "A valid SSC Membership Card must be presented to avail of the discount.",
       "The discount applies to regular-priced items only and is subject to the store's existing policies and guidelines.",
-      "Items or transactions covered by existing discounts, special offers, or promotions may be excluded from the additional 10% discount.",
+      "Items or transactions covered by existing discounts, special offers, or promotions may be excluded from the discount.",
       "For dine-in transactions, the qualified student must be personally present and present the membership card before availing of the discount.",
       "Only one discount may be availed per transaction.",
       "Only one valid ID with a corresponding discount privilege may be used per transaction. Combining discounts from multiple IDs is prohibited.",
@@ -441,7 +441,7 @@ export const partnersData = [
     "conditions": [
       "A valid SSC Membership Card must be presented to avail of the discount.",
       "The discount applies to regular-priced items only and is subject to the store's existing policies and guidelines.",
-      "Items or transactions covered by existing discounts, special offers, or promotions may be excluded from the additional 10% discount.",
+      "Items or transactions covered by existing discounts, special offers, or promotions may be excluded from the discount.",
       "For dine-in transactions, the qualified student must be personally present and present the membership card before availing of the discount.",
       "Only one discount may be availed per transaction.",
       "Only one valid ID with a corresponding discount privilege may be used per transaction. Combining discounts from multiple IDs is prohibited.",
