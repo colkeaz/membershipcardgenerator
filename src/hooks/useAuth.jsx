@@ -13,6 +13,14 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        const cachedMemberStr = localStorage.getItem(`ssc_member_${firebaseUser.uid}`);
+        if (cachedMemberStr) {
+          try {
+             setMember(JSON.parse(cachedMemberStr));
+          } catch(e) {}
+        }
+      }
+      if (firebaseUser) {
         setUser(firebaseUser);
         const memberRef = doc(db, 'members', firebaseUser.uid);
         const snap = await getDoc(memberRef);
@@ -23,9 +31,12 @@ export function AuthProvider({ children }) {
             updateDoc(memberRef, { photoURL: firebaseUser.photoURL }).catch(e => { /* ignore */ });
             data.photoURL = firebaseUser.photoURL;
           }
-          setMember({ id: snap.id, ...data });
+          const memberObj = { id: snap.id, ...data };
+          setMember(memberObj);
+          localStorage.setItem(`ssc_member_${firebaseUser.uid}`, JSON.stringify(memberObj));
         } else {
           setMember(null);
+          localStorage.removeItem(`ssc_member_${firebaseUser.uid}`);
         }
       } else {
         setUser(null);
@@ -42,10 +53,39 @@ export function AuthProvider({ children }) {
   const refreshMember = async () => {
     if (!user) return;
     const snap = await getDoc(doc(db, 'members', user.uid));
-    setMember(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+    if (snap.exists()) {
+      const memberObj = { id: snap.id, ...snap.data() };
+      setMember(memberObj);
+      localStorage.setItem(`ssc_member_${user.uid}`, JSON.stringify(memberObj));
+    } else {
+      setMember(null);
+      localStorage.removeItem(`ssc_member_${user.uid}`);
+    }
   };
 
+  
+  // 15 minute inactivity timeout
+  useEffect(() => {
+    let timeout;
+    const resetTimer = () => {
+      clearTimeout(timeout);
+      if (user) {
+        timeout = setTimeout(() => {
+          logout();
+        }, 15 * 60 * 1000);
+      }
+    };
+    resetTimer();
+    const events = ['mousemove', 'keydown', 'scroll', 'click'];
+    events.forEach(e => window.addEventListener(e, resetTimer));
+    return () => {
+      clearTimeout(timeout);
+      events.forEach(e => window.removeEventListener(e, resetTimer));
+    };
+  }, [user]);
+
   return (
+
     <AuthContext.Provider value={{ user, member, loading, signInWithGoogle, logout, refreshMember }}>
       {children}
     </AuthContext.Provider>

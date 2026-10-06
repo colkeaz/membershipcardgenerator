@@ -67,7 +67,7 @@
 }
 
 /* ══════════════════════════════
-   FRONT FACE
+   FRONT FACE (Preserved exact design)
    ══════════════════════════════ */
 .card-face-front {
   background: #ffffff;
@@ -332,30 +332,33 @@
 }
 
 /* ═════════════════════════════
-   BACK FACE
+   BACK FACE (Exact reference match)
    ═════════════════════════════ */
 .card-face-back {
   transform: rotateY(180deg);
   -webkit-transform: rotateY(180deg);
   background: #ffffff;
-  font-family: var(--font-card);
-  color: #000;
+  font-family: Arial, Helvetica, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   user-select: none;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  position: absolute;
+  inset: 0;
 }
 
-/* Faint grid */
+/* Faint grid background matching the institutional card design */
 .card-back-grid-bg {
   position: absolute;
   inset: 0;
+  background-color: #ffffff;
   background-image:
-    linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px);
-  background-size: 8px 8px;
+    linear-gradient(to right, rgba(0, 0, 0, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.055) 1px, transparent 1px);
+  background-size: 14px 14px;
   pointer-events: none;
+  z-index: 1;
 }
 
 /* Top bar gradient */
@@ -365,90 +368,113 @@
   left: 0;
   right: 0;
   height: 12px;
-  background: linear-gradient(90deg, #D11A0D 0%, #FFBC01 100%);
+  background: linear-gradient(90deg, #D11A0D 0%, #FF7A00 50%, #FFBC01 100%);
+  z-index: 2;
 }
 
-/* Main body wrapper */
-.card-back-body {
+/* Header section: Certification text & Validity on left, QR on right */
+.card-back-header {
   position: absolute;
-  top: 22px;
-  left: 18px;
-  right: 18px;
+  top: 18px;
+  left: 16px;
+  right: 16px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  z-index: 2;
 }
 
-.card-back-left {
+.card-back-header-left {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  flex: 1;
 }
 
 .card-certification {
-  font-size: 0.44rem;
-  font-weight: 700;
-  line-height: 1.15;
-  text-align: left;
-  color: #000;
+  text-align: left !important;
+  color: #000000 !important;
 }
 
 .card-certification p {
-  margin: 0 0 6px 0;
+  text-align: left !important;
+  color: #000000 !important;
+  font-size: 0.44rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin: 0 0 5px 0;
 }
+
 .card-certification p:last-child {
   margin-bottom: 0;
 }
 
-.card-validity {
+/* Validity row */
+.card-validity-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 8px;
+  margin-top: 6px;
+  width: 100%;
 }
 
-.validity-label {
-  font-size: 0.8rem;
+.card-validity-title {
+  font-size: 1.15rem;
   font-weight: 900;
   color: #D11A0D;
   letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
 }
 
-.validity-box {
+.card-validity-field {
   flex: 1;
-  border: 1px solid #000;
-  padding: 4px 6px;
-  font-size: 0.42rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #000;
+  border: 1.5px solid #000000;
+  background: #ffffff;
+  height: 20px;
+  padding: 0 8px;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  border-radius: 0;
 }
 
-.card-back-right {
+.card-validity-field span {
+  font-size: 0.52rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #000000;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  text-align: left;
+}
+
+/* QR Code Section */
+.card-back-header-right {
+  flex-shrink: 0;
+}
+
+.card-qr-box {
+  width: 82px;
+  height: 82px;
+  background: #ffffff;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
 }
 
-.card-qr-frame {
-  background: transparent;
-  padding: 0;
-}
-
-.card-qr-img {
-  width: 105px;
-  height: 105px;
+.card-back-qr-img {
+  width: 82px;
+  height: 82px;
   display: block;
-  mix-blend-mode: multiply;
+  object-fit: contain;
 }
 
-.card-qr-placeholder {
-  width: 105px;
-  height: 105px;
+.card-back-qr-placeholder {
+  width: 82px;
+  height: 82px;
   background: #f0f0f0;
   overflow: hidden;
   position: relative;
@@ -467,26 +493,110 @@
   100% { background-position: -200% 0; }
 }
 
+/* ── 3-Row Sponsor Wall (31 Partner Logos) ── */
+.card-back-partners {
+  position: absolute;
+  top: 106px;
+  left: 14px;
+  right: 14px;
+  bottom: 46px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 2;
+}
+
+.card-partners-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 30px;
+}
+
+.card-partner-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.card-partners-row-1 .card-partner-item,
+.card-partners-row-3 .card-partner-item {
+  width: calc(100% / 11);
+}
+
+.card-partners-row-2 .card-partner-item {
+  width: calc(100% / 9);
+}
+
+.card-partner-item img {
+  max-height: 27px;
+  max-width: 94%;
+  object-fit: contain;
+  display: block;
+  filter: none;
+}
+
+.card-partner-item img[alt="Alaw Tiluk Lomi Haus"],
+.card-partner-item img[alt="Brighthub"],
+.card-partner-item img[alt="Butch Seafood & Grill"],
+.card-partner-item img[alt="232 Restaurant"] {
+  max-height: 24px;
+  max-width: 98%;
+}
+
+.card-partner-item img[alt="South Peak"] {
+  max-height: 20px;
+  max-width: 98%;
+}
+
+.card-partner-item img[alt="Shakey's"],
+.card-partner-item img[alt="Mango Grill"] {
+  max-height: 25px;
+  max-width: 96%;
+}
+
+.card-partner-item img[alt="The Garden Cafe"],
+.card-partner-item img[alt="Hidden Cafe"],
+.card-partner-item img[alt="Appleville"] {
+  max-height: 24px;
+  max-width: 96%;
+}
+
+.card-partner-item img[alt="CALQ by Engr. Guides"],
+.card-partner-item img[alt="Lumino Photobooth"],
+.card-partner-item img[alt="Zoerene Crafts"],
+.card-partner-item img[alt="NSP Dental Clinic"],
+.card-partner-item img[alt="Élan Pilates"] {
+  max-height: 23px;
+  max-width: 96%;
+}
+
 /* Bottom arc */
 .card-back-bottom-arc {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 48px;
-  background: linear-gradient(90deg, #D11A0D 0%, #FFBC01 100%);
-  clip-path: ellipse(75% 100% at 50% 100%);
+  height: 46px;
+  background: linear-gradient(90deg, #D11A0D 0%, #E64A19 45%, #FF7A00 100%);
+  clip-path: ellipse(78% 100% at 50% 100%);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   padding-bottom: 8px;
+  z-index: 3;
 }
 
 .card-back-bottom-arc span {
-  color: #ffffff;
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
+  color: #ffffff !important;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
 }
 
 /* ══════════════════════════════
@@ -521,11 +631,6 @@
 }
 
 /* ─── Responsive (Mobile First Scaling) ─── */
-/* 
-  Since the card has strict internal pixel constraints (for exports), 
-  we scale it fluidly via CSS transform. 
-  The negative margins reduce its physical layout footprint so it doesn't cause overflow-x on small screens.
-*/
 .card-scene {
   perspective: 1200px;
   -webkit-perspective: 1200px;
@@ -556,17 +661,9 @@
 /* Tablet & Desktop Layout */
 @media (min-width: 768px) {
   .card-scene {
-    /* Once viewport is wide enough, lock to native scale */
     --card-scale: 1;
     margin-bottom: 0;
     margin-left: 0;
     margin-right: 0;
   }
 }
-
-.card-face-back * { color: #000; }
-.card-partners-section { margin-top: 8px; }
-.partners-label { font-size: 0.45rem; font-weight: 800; color: #D11A0D; letter-spacing: 0.04em; display: block; margin-bottom: 4px; }
-.sponsor-wall-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-top: 4px; width: 100%; }
-.sponsor-wall-item { width: 100%; height: 16px; display: flex; align-items: center; justify-content: center; }
-.sponsor-wall-item img { max-width: 100%; max-height: 100%; object-fit: contain; filter: grayscale(100%) contrast(150%) opacity(0.65); mix-blend-mode: multiply; }

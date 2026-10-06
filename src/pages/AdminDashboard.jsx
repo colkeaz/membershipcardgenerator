@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   collection, getDocs, doc, updateDoc, writeBatch, deleteDoc,
-  query, orderBy, limit,
+  query, orderBy, limit, where, getCountFromServer, startAfter, serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../hooks/useAuth';
@@ -17,7 +17,7 @@ import QRCode from 'qrcode';
 import { buildVerifyUrl } from '../utils/cardSigning';
 import './AdminDashboard.css';
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 20;
 const STATUS_OPTS   = ['all', 'pending', 'active', 'inactive'];
 const YEAR_OPTS     = ['all', '1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
 
@@ -31,7 +31,10 @@ export default function AdminDashboard() {
   const [search,       setSearch]       = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [yearFilter,   setYearFilter]   = useState('all');
-  const [page,         setPage]         = useState(0);   // client-side page
+  const [deptFilter,   setDeptFilter]   = useState('all');
+  const [page,         setPage]         = useState(0);   
+  const [cursors,      setCursors]      = useState([]);
+  const [hasMore,      setHasMore]      = useState(true);
   const [stats,        setStats]        = useState({ total:0, active:0, pending:0, inactive:0 });
 
   // CSV
@@ -80,19 +83,64 @@ export default function AdminDashboard() {
     return () => { cancelled = true; };
   }, [previewMember]);
 
-  // ── Fetch all members (capped at 50k, paginated client-side) ──
-  const fetchMembers = async () => {
-    setLoading(true);
+  // ── Fetch Stats ──
+  const fetchStats = async () => {
     try {
-      const snap = await getDocs(query(collection(db, 'members'), orderBy('createdAt', 'desc')));
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setMembers(data);
+      const totalSnap = await getCountFromServer(collection(db, 'members'));
+      const activeSnap = await getCountFromServer(query(collection(db, 'members'), where('status', '==', 'active')));
+      const pendingSnap = await getCountFromServer(query(collection(db, 'members'), where('status', '==', 'pending')));
+      const inactiveSnap = await getCountFromServer(query(collection(db, 'members'), where('status', '==', 'inactive')));
+      
       setStats({
-        total:    data.length,
-        active:   data.filter(m => m.status === 'active').length,
-        pending:  data.filter(m => m.status === 'pending').length,
-        inactive: data.filter(m => m.status === 'inactive').length,
+        total: totalSnap.data().count,
+        active: activeSnap.data().count,
+        pending: pendingSnap.data().count,
+        inactive: inactiveSnap.data().count,
       });
+    } catch (err) {
+      console.error('Failed to fetch stats:', err);
+    }
+  };
+
+  // ── Fetch Members Paginated or Searched ──
+  const fetchMembers = async (targetPage = 0, forceSearchValue = null) => {
+    setLoading(true);
+    const searchValue = forceSearchValue !== null ? forceSearchValue : search;
+    
+    try {
+      let q;
+      if (searchValue.trim()) {
+        q = query(collection(db, 'members'), where('studentId', '==', searchValue.trim()), limit(1));
+      } else {
+        let constraints = [];
+        if (statusFilter !== 'all') constraints.push(where('status', '==', statusFilter));
+        if (yearFilter !== 'all') constraints.push(where('yearLevel', '==', yearFilter));
+        if (deptFilter !== 'all') constraints.push(where('department', '==', deptFilter));
+        
+        constraints.push(orderBy('createdAt', 'desc'));
+        
+        if (targetPage > 0 && cursors[targetPage - 1]) {
+          constraints.push(startAfter(cursors[targetPage - 1]));
+        }
+        
+        constraints.push(limit(PAGE_SIZE));
+        q = query(collection(db, 'members'), ...constraints);
+      }
+      
+      const snap = await getDocs(q);
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      
+      if (!searchValue.trim()) {
+        const newCursors = [...cursors];
+        newCursors[targetPage] = snap.docs[snap.docs.length - 1];
+        setCursors(newCursors);
+        setHasMore(snap.docs.length === PAGE_SIZE);
+      } else {
+        setHasMore(false);
+      }
+      
+      setMembers(data);
+      setPage(targetPage);
     } catch (err) {
       console.error(err);
       toast('Failed to load members', 'error');
@@ -101,27 +149,31 @@ export default function AdminDashboard() {
     }
   };
 
-  useEffect(() => { fetchMembers(); }, []);
+  const handleSearchClick = () => {
+    setCursors([]);
+    setPage(0);
+    fetchMembers(0, search);
+  };
 
-  // ── Filtered + searched list ──
-  const filtered = members.filter(m => {
-    const matchStatus = statusFilter === 'all' || m.status === statusFilter;
-    const matchYear   = yearFilter   === 'all' || m.yearLevel === yearFilter;
-    const q = search.toLowerCase();
-    const matchSearch = !q
-      || m.fullName?.toLowerCase().includes(q)
-      || m.studentId?.toLowerCase().includes(q)
-      || m.membershipNumber?.toLowerCase().includes(q)
-      || (m.program || m.course)?.toLowerCase().includes(q)
-      || m.department?.toLowerCase().includes(q);
-    return matchStatus && matchYear && matchSearch;
-  });
+  const handleRefresh = () => {
+    fetchStats();
+    setCursors([]);
+    setPage(0);
+    fetchMembers(0, search);
+  };
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated  = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
-  // Reset to page 0 when filters change
-  useEffect(() => { setPage(0); }, [search, statusFilter, yearFilter]);
+  useEffect(() => {
+    if (search === '') {
+      setCursors([]);
+      setPage(0);
+      fetchMembers(0, '');
+    }
+  }, [statusFilter, yearFilter, deptFilter, search]);
+
 
   // ── Actions ──
   const updateStatus = async (uid, newStatus) => {
@@ -134,15 +186,8 @@ export default function AdminDashboard() {
       }
       await updateDoc(doc(db, 'members', uid), updates);
       setMembers(prev => prev.map(m => m.id === uid ? { ...m, ...updates } : m));
-      setStats(prev => {
-        const old = members.find(m => m.id === uid)?.status;
-        return {
-          ...prev,
-          [old]: Math.max(0, (prev[old] || 0) - 1),
-          [newStatus]: (prev[newStatus] || 0) + 1,
-        };
-      });
       toast(`Member ${newStatus === 'active' ? 'approved & renewed for ' + updates.semester : 'deactivated'}.`, 'success');
+      fetchStats(); // Update stats in background
     } catch { toast('Action failed. Please try again.', 'error'); }
   };
 
@@ -150,31 +195,27 @@ export default function AdminDashboard() {
   const confirmDeactivateAll = async () => {
     setDeactivatingAll(true);
     try {
-      const activeMembers = members.filter(m => m.status === 'active');
-      if (activeMembers.length === 0) {
+      if (stats.active === 0) {
         setShowDeactivateModal(false);
         return;
       }
 
-      const BATCH_SIZE = 499;
-      for (let i = 0; i < activeMembers.length; i += BATCH_SIZE) {
+      let processed = 0;
+      while (true) {
+        const snap = await getDocs(query(collection(db, 'members'), where('status', '==', 'active'), limit(500)));
+        if (snap.empty) break;
         const batch = writeBatch(db);
-        const chunk = activeMembers.slice(i, i + BATCH_SIZE);
-        chunk.forEach((m) => {
-          batch.update(doc(db, 'members', m.id), { status: 'inactive' });
+        snap.docs.forEach((d) => {
+          batch.update(d.ref, { status: 'inactive' });
         });
         await batch.commit();
+        processed += snap.docs.length;
       }
 
-      setMembers(prev => prev.map(m => m.status === 'active' ? { ...m, status: 'inactive' } : m));
-      setStats(prev => ({
-        ...prev,
-        active: 0,
-        inactive: prev.inactive + activeMembers.length,
-      }));
-
-      toast(`All ${activeMembers.length} active members deactivated for the new semester.`, 'success');
+      toast(`All ${processed} active members deactivated for the new semester.`, 'success');
       setShowDeactivateModal(false);
+      fetchStats();
+      if (!search.trim()) fetchMembers(page);
     } catch (err) {
       console.error(err);
       toast('Failed to deactivate members. Please try again.', 'error');
@@ -187,23 +228,25 @@ export default function AdminDashboard() {
   const confirmDeleteAll = async () => {
     setDeletingAll(true);
     try {
-      if (members.length === 0) {
-        setShowDeleteAllModal(false);
-        return;
-      }
-      const BATCH_SIZE = 499;
-      for (let i = 0; i < members.length; i += BATCH_SIZE) {
+      let processed = 0;
+      while (true) {
+        const snap = await getDocs(query(collection(db, 'members'), limit(500)));
+        if (snap.empty) break;
         const batch = writeBatch(db);
-        const chunk = members.slice(i, i + BATCH_SIZE);
-        chunk.forEach((m) => {
-          batch.delete(doc(db, 'members', m.id));
+        snap.docs.forEach((d) => {
+          batch.delete(d.ref);
         });
         await batch.commit();
+        processed += snap.docs.length;
       }
-      setMembers([]);
-      setStats({ total: 0, active: 0, pending: 0, inactive: 0 });
-      toast(`All ${members.length} members deleted successfully.`, 'success');
+
+      toast(`All ${processed} members deleted successfully.`, 'success');
       setShowDeleteAllModal(false);
+      fetchStats();
+      if (!search.trim()) {
+        setCursors([]);
+        fetchMembers(0);
+      }
     } catch (err) {
       console.error(err);
       toast('Failed to delete members. Please try again.', 'error');
@@ -211,6 +254,7 @@ export default function AdminDashboard() {
       setDeletingAll(false);
     }
   };
+
   // ── Delete Single User ──
   const confirmDeleteUser = async () => {
     if (!userToDelete) return;
@@ -218,13 +262,9 @@ export default function AdminDashboard() {
     try {
       await deleteDoc(doc(db, 'members', userToDelete.id));
       setMembers(prev => prev.filter(m => m.id !== userToDelete.id));
-      setStats(prev => ({
-        ...prev,
-        total: Math.max(0, prev.total - 1),
-        [userToDelete.status]: Math.max(0, prev[userToDelete.status] - 1),
-      }));
       toast('Member deleted successfully.', 'success');
       setUserToDelete(null);
+      fetchStats();
     } catch (err) {
       console.error(err);
       toast('Failed to delete member.', 'error');
@@ -233,7 +273,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Fixed: MED-02 Client-side check preventing non-admin role escalation as per audit
   const updateRole = async (uid, newRole) => {
     if (self?.role !== 'admin') { toast('Only admins can change roles.', 'error'); return; }
     try {
@@ -273,7 +312,6 @@ export default function AdminDashboard() {
         chunk.forEach((row) => {
           seq++;
           const ref = doc(collection(db, 'members'));
-          // Fixed: MED-03 Tracking imported member documents to avoid orphan records as per audit
           batch.set(ref, {
             ...row,
             importedBy: self?.uid || 'admin',
@@ -293,7 +331,7 @@ export default function AdminDashboard() {
 
       toast(`Imported ${csvPreview.length} members successfully!`, 'success');
       setCsvPreview(null);
-      fetchMembers();
+      handleRefresh();
     } catch (err) {
       console.error(err);
       toast('Import failed. Check your CSV and try again.', 'error');
@@ -301,8 +339,6 @@ export default function AdminDashboard() {
       setImporting(false);
     }
   };
-
-
 
   return (
     <main className="admin-page">
@@ -319,10 +355,14 @@ export default function AdminDashboard() {
             <p className="admin-sub">Manage SSC-AL memberships · AY {getCurrentSchoolYear()}</p>
           </div>
           <div className="admin-header-actions">
-            <button id="btn-refresh" className="btn btn-ghost btn-sm" onClick={fetchMembers} disabled={loading} aria-label="Refresh members">
+            <button id="btn-refresh" className="btn btn-ghost btn-sm" onClick={handleRefresh} disabled={loading} aria-label="Refresh members">
               <RefreshCw size={15} className={loading ? 'spin-icon' : ''} /> Refresh
             </button>
-            <button id="btn-export-csv" className="btn btn-outline btn-sm" onClick={() => exportToCSV(filtered)}>
+            <button id="btn-export-csv" className="btn btn-outline btn-sm" onClick={() => {
+              // Warn about client-side export limit if we aren't fetching all anymore
+              toast('Note: Export currently only exports visible/filtered data in the view or you may need to update the exporter.', 'warning');
+              exportToCSV(members);
+            }}>
               <Download size={15} /> Export CSV
             </button>
             <button id="btn-import-csv" className="btn btn-primary btn-sm" onClick={() => fileInputRef.current?.click()}>
@@ -372,17 +412,24 @@ export default function AdminDashboard() {
 
         {/* Filters */}
         <div className="admin-filters glass">
-          <div className="admin-search-wrap">
-            <Search size={16} className="admin-search-icon" />
-            <input
-              id="admin-search"
-              type="text"
-              className="admin-search"
-              placeholder="Search by name, student ID, membership no…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              aria-label="Search members"
-            />
+          <div className="admin-search-wrap" style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: 1 }}>
+              <Search size={16} className="admin-search-icon" style={{ position: 'absolute', left: 10 }} />
+              <input
+                id="admin-search"
+                type="text"
+                className="admin-search"
+                style={{ paddingLeft: '34px', width: '100%' }}
+                placeholder="Search by exact SR-Code…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSearchClick()}
+                aria-label="Search members"
+              />
+            </div>
+            <button className="btn btn-primary btn-sm" onClick={handleSearchClick} disabled={loading}>
+              Search
+            </button>
           </div>
           <div className="admin-filter-group">
             <Filter size={14} style={{ color: 'var(--color-text-secondary)', flexShrink: 0 }} />
@@ -404,8 +451,23 @@ export default function AdminDashboard() {
             >
               {YEAR_OPTS.map(y => <option key={y} value={y}>{y === 'all' ? 'All Years' : y}</option>)}
             </select>
+            <select
+              id="filter-dept"
+              className="form-select admin-select"
+              value={deptFilter}
+              onChange={e => setDeptFilter(e.target.value)}
+              aria-label="Filter by department"
+            >
+              <option value="all">All Depts</option>
+              {/* Department options can be static or fetched if needed, keeping simple for now */}
+              <option value="CICS">CICS</option>
+              <option value="CABE">CABE</option>
+              <option value="CAS">CAS</option>
+              <option value="CECS">CECS</option>
+              <option value="CTE">CTE</option>
+              <option value="CONAHS">CONAHS</option>
+            </select>
           </div>
-          <span className="admin-count">{filtered.length} results</span>
         </div>
 
         {/* Table */}
@@ -432,13 +494,13 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginated.length === 0 ? (
+                  {members.length === 0 ? (
                     <tr>
                       <td colSpan={9} style={{ textAlign:'center', color:'var(--color-text-tertiary)', padding:'40px' }}>
                         No members found.
                       </td>
                     </tr>
-                  ) : paginated.map(m => (
+                  ) : members.map(m => (
                     <tr key={m.id}>
                       <td>
                         <span style={{ fontFamily:'monospace', fontSize:'0.8rem', color:'var(--color-gold)' }}>
@@ -488,15 +550,15 @@ export default function AdminDashboard() {
                           </button>
                           {/* Approve */}
                           {m.status !== 'active' && (
-                            <button
-                              className="btn btn-sm"
-                              style={{ background:'rgba(34,197,94,0.15)', color:'#4ade80', border:'1px solid rgba(34,197,94,0.2)' }}
-                              onClick={() => updateStatus(m.id, 'active')}
-                              title="Approve"
-                              aria-label={`Approve ${m.fullName}`}
-                            >
-                              <CheckCircle size={14} /> Approve
-                            </button>
+                           <button
+                             className="btn btn-sm"
+                             style={{ background:'rgba(34,197,94,0.15)', color:'#4ade80', border:'1px solid rgba(34,197,94,0.2)' }}
+                             onClick={() => updateStatus(m.id, 'active')}
+                             title="Approve"
+                             aria-label={`Approve ${m.fullName}`}
+                           >
+                             <CheckCircle size={14} /> Approve
+                           </button>
                           )}
                           {/* Deactivate */}
                           {m.status === 'active' && (
@@ -531,29 +593,26 @@ export default function AdminDashboard() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="pagination" role="navigation" aria-label="Pagination">
+            {(!search.trim()) && (members.length > 0 || page > 0) && (
+              <div className="pagination" role="navigation" aria-label="Pagination" style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '16px' }}>
                 <button
-                  onClick={() => setPage(p => Math.max(0, p - 1))}
+                  className="btn btn-outline btn-sm"
+                  onClick={() => fetchMembers(page - 1)}
                   disabled={page === 0}
                   aria-label="Previous page"
                 >
-                  <ChevronLeft size={14} />
+                  <ChevronLeft size={14} /> Prev
                 </button>
-                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                  const pg = totalPages <= 7 ? i : page < 4 ? i : page > totalPages - 5 ? totalPages - 7 + i : page - 3 + i;
-                  return (
-                    <button key={pg} className={pg === page ? 'active' : ''} onClick={() => setPage(pg)}>
-                      {pg + 1}
-                    </button>
-                  );
-                })}
+                <span style={{ fontSize: '0.9rem', padding: '4px 12px', display: 'flex', alignItems: 'center' }}>
+                  Page {page + 1}
+                </span>
                 <button
-                  onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                  disabled={page >= totalPages - 1}
+                  className="btn btn-outline btn-sm"
+                  onClick={() => fetchMembers(page + 1)}
+                  disabled={!hasMore}
                   aria-label="Next page"
                 >
-                  <ChevronRight size={14} />
+                  Next <ChevronRight size={14} />
                 </button>
               </div>
             )}
@@ -727,4 +786,3 @@ function ConfirmModal({ title, icon: Icon, isDanger, children, confirmText, onCo
     </div>
   );
 }
-

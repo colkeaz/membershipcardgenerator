@@ -1,86 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, X } from 'lucide-react';
+import { ArrowUpRight, X, MapPin } from 'lucide-react';
 import './Benefits.css';
-
-const PARTNERS = [
-  {
-    name: "Shakey's",
-    benefit: "10% discount on regular-priced items",
-    logo: "/partnership-logo/shakeys.png",
-    conditions: ["Applies to regular-priced items only.", "For dine-in, cardholder must be present.", "Cannot combine with other discounts."],
-    colSpan: 8, rowSpan: 2
-  },
-  {
-    name: "Batangas Country Club",
-    benefit: "10% off dining & 40% off rooms",
-    logo: "/partnership-logo/Batangas_Country_Club.png",
-    conditions: ["10% discount on dining at Mango Grill, AppleVille, etc.", "40% discount applies to room rates."],
-    colSpan: 4, rowSpan: 2
-  },
-  {
-    name: "Dink Republic",
-    benefit: "10% off court rentals",
-    logo: "/partnership-logo/dink_republic.png",
-    conditions: ["Valid only from 7:00 AM to 4:00 PM.", "Applies to open-play sessions organized by Dink Republic."],
-    colSpan: 6, rowSpan: 1
-  },
-  {
-    name: "Max Mango",
-    benefit: "10% discount per order",
-    logo: "/partnership-logo/max_mango.png",
-    conditions: ["Applies per order upon presentation of valid card."],
-    colSpan: 6, rowSpan: 1
-  },
-  {
-    name: "Lumino Photobooth",
-    benefit: "15% off services",
-    logo: "/partnership-logo/lumino_photobooth.png",
-    conditions: ["Subject to establishment's applicable policies."],
-    colSpan: 4, rowSpan: 1
-  },
-  {
-    name: "NSP Dental Clinic",
-    benefit: "10% off dental services",
-    logo: "/partnership-logo/NSP_Dental_Clinic.png",
-    conditions: ["Applies to dental services availed by the cardholder."],
-    colSpan: 8, rowSpan: 1
-  },
-  {
-    name: "South Peak",
-    benefit: "50% discount",
-    logo: "/partnership-logo/southpeak_gardenandeventsplace.png",
-    conditions: ["Subject to existing policies.", "Cannot combine with other discounts."],
-    colSpan: 8, rowSpan: 2
-  },
-  {
-    name: "Brighthub",
-    benefit: "5% off & Complimentary Access",
-    logo: "/partnership-logo/brighthub.png",
-    conditions: ["5% discount on student desk rates for groups of 10.", "One comp access for every 20 persons."],
-    colSpan: 4, rowSpan: 2
-  },
-  {
-    name: "Élan Pilates",
-    benefit: "Discounted Classes",
-    logo: "/partnership-logo/elan_pilates.png",
-    conditions: ["Group class: ₱949.", "Single private class: ₱1,799.", "Bookings subject to studio availability."],
-    colSpan: 5, rowSpan: 1
-  },
-  {
-    name: "Vertex Prints",
-    benefit: "10% off printing & copying",
-    logo: "/partnership-logo/vertex_prints.png",
-    conditions: ["Printing requires a minimum of 150 pages.", "Photocopying requires a minimum of 50 pages."],
-    colSpan: 7, rowSpan: 1
-  },
-  {
-    name: "LCKD IN",
-    benefit: "Free Sessions & Group Discounts",
-    logo: "/partnership-logo/lckd_in.png",
-    conditions: ["1 comp session after 8 paid sessions.", "₱10 discount for every 15 cumulative study hours.", "Group discounts up to 20%."],
-    colSpan: 12, rowSpan: 1
-  }
-];
+import { partnersData } from '../data/partners.js';
 
 export default function Benefits() {
   const gridRef = useRef(null);
@@ -134,13 +55,13 @@ export default function Benefits() {
         </div>
 
         <div className="bento-grid" ref={gridRef}>
-          {PARTNERS.map((partner, idx) => (
+          {partnersData.map((partner, idx) => (
             <div 
               key={idx} 
               className="double-bezel-outer" 
               style={{ 
-                '--col': partner.colSpan, 
-                '--row': partner.rowSpan,
+                '--col': partner.span.col, 
+                '--row': partner.span.row,
                 '--delay': `${(idx % 4) * 100}ms`
               }}
               onClick={() => setActivePartner(partner)}
@@ -178,7 +99,19 @@ export default function Benefits() {
               <h2 className="partner-modal-title">{activePartner.name}</h2>
               <p className="partner-modal-benefit">{activePartner.benefit}</p>
               
-              <div className="partner-modal-conditions-box">
+                            <div className="partner-modal-conditions-box">
+                {activePartner.branches && activePartner.branches.length > 0 && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <h4 className="conditions-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <MapPin size={14} /> Participating Branches
+                    </h4>
+                    <ul className="conditions-list" style={{ marginBottom: '16px' }}>
+                      {activePartner.branches.map((branch, i) => (
+                        <li key={i}>{branch}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <h4 className="conditions-label">Terms & Conditions</h4>
                 <ul className="conditions-list">
                   {activePartner.conditions.map((cond, i) => (

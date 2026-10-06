@@ -5,6 +5,7 @@ import { buildVerifyUrl } from '../utils/cardSigning';
 import { useToast } from '../components/ToastProvider';
 import { Download, FileImage, Clock, Info, RotateCcw, ExternalLink } from 'lucide-react';
 import QRCode from 'qrcode';
+import html2canvas from 'html2canvas';
 import './CardPage.css';
 
 // Placeholder Google Form for renewal payments (can be replaced with actual form URL)
@@ -13,6 +14,7 @@ const RENEWAL_FORM_URL = import.meta.env.VITE_RENEWAL_FORM_URL || 'https://forms
 export default function CardPage() {
   const { member, user } = useAuth();
   const toast = useToast();
+  const [downloading, setDownloading] = useState(false);
 
   // Refs for off-screen export targets (no 3D transform — clean for html2canvas)
   const frontRef = useRef(null);
@@ -29,7 +31,7 @@ export default function CardPage() {
       const url = buildVerifyUrl(member.membershipNumber, targetUid);
       const dataUrl = await QRCode.toDataURL(url, {
         width: 180, margin: 1,
-        color: { dark: '#1a0000', light: '#fff8f0' },
+        color: { dark: '#000000', light: '#ffffff' },
         errorCorrectionLevel: 'H',
       });
       if (!cancelled) setQrDataUrl(dataUrl);
@@ -40,6 +42,26 @@ export default function CardPage() {
 
 
 
+  
+  const downloadCardImage = async () => {
+    if (!frontRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(frontRef.current, { backgroundColor: null, scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = imgData;
+      link.download = `SSC_AL_ID_${member.studentId || 'Card'}.png`;
+      link.click();
+      toast('Card image saved successfully!', 'success');
+    } catch (error) {
+      console.error(error);
+      toast('Failed to save card image', 'error');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const isPending  = member?.status === 'pending';
   const isInactive = member?.status === 'inactive';
   const isActive   = member?.status === 'active';
@@ -47,9 +69,9 @@ export default function CardPage() {
   return (
     <main className="card-page">
       {/* Off-screen export targets — no 3D transforms, clean for html2canvas */}
-      <div className="export-offscreen" aria-hidden="true">
-        <CardFront ref={frontRef} member={member} />
-        <CardBack  ref={backRef}  qrDataUrl={qrDataUrl} />
+      <div className="export-offscreen" aria-hidden="true" style={{ position: 'absolute', left: '-9999px' }}>
+        <div ref={frontRef} style={{ width: 'fit-content' }}><CardFront member={member} /></div>
+        <div ref={backRef} style={{ width: 'fit-content' }}><CardBack member={member} qrDataUrl={qrDataUrl} /></div>
       </div>
 
       <div className="container card-page-container">
@@ -65,7 +87,8 @@ export default function CardPage() {
 
           {/* Export actions */}
           {(isActive || isInactive) && (
-            <div className="card-actions">
+            
+            <div className="card-actions" style={{ display: 'flex', gap: '10px' }}>
               <button
                 className="btn btn-outline btn-sm"
                 onClick={() => window.print()}
@@ -73,7 +96,17 @@ export default function CardPage() {
               >
                 <Download size={14} aria-hidden="true" /> Print / PDF
               </button>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={downloadCardImage}
+                disabled={downloading}
+                aria-label="Download Image"
+              >
+                {downloading ? <span className="spinner spinner-sm" /> : <FileImage size={14} aria-hidden="true" />}
+                {downloading ? ' Saving...' : ' Save Image'}
+              </button>
             </div>
+
           )}
         </div>
 

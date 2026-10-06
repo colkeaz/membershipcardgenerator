@@ -8,6 +8,21 @@ admin.initializeApp();
 // The HMAC secret is retrieved strictly server-side from environment variables
 const HMAC_SECRET = process.env.CARD_HMAC_SECRET || functions.config().app?.hmac_secret;
 
+
+async function enforceRateLimit(identifier) {
+  if (!identifier) return;
+  const limitRef = admin.firestore().doc(`rate_limits/${identifier}`);
+  const snap = await limitRef.get();
+  const now = Date.now();
+  if (snap.exists) {
+    const lastRequest = snap.data().lastRequest;
+    if (now - lastRequest < 3000) { // 3 seconds
+      throw new functions.https.HttpsError('resource-exhausted', 'Rate limit exceeded. Please wait 3 seconds.');
+    }
+  }
+  await limitRef.set({ lastRequest: now });
+}
+
 function computeServerHmac(membershipNumber, uid) {
   if (!HMAC_SECRET) {
     throw new functions.https.HttpsError('failed-precondition', 'Server HMAC secret not configured');
@@ -23,6 +38,13 @@ function computeServerHmac(membershipNumber, uid) {
  * Regular members can only sign their own card; officers/admins can sign any card.
  */
 exports.signCard = functions.https.onCall(async (data, context) => {
+
+  if (context.app == undefined) {
+    throw new functions.https.HttpsError('failed-precondition', 'App Check token is required.');
+  }
+
+  await enforceRateLimit(context.auth?.uid);
+
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Must be logged in to sign membership cards');
   }
@@ -50,7 +72,14 @@ exports.signCard = functions.https.onCall(async (data, context) => {
  * Validates HMAC and returns only public membership card verification details,
  * completely protecting personal email, internal notes, and sensitive auth data.
  */
-exports.verifyMembership = functions.https.onCall(async (data) => {
+exports.verifyMembership = functions.https.onCall(async (data, context) => {
+
+  if (context.app == undefined) {
+    throw new functions.https.HttpsError('failed-precondition', 'App Check token is required.');
+  }
+
+  await enforceRateLimit(context.auth?.uid || context.rawRequest?.ip || 'anonymous');
+
   const { mn, uid, sig } = data;
   if (!mn || !uid || !sig) {
     throw new functions.https.HttpsError('invalid-argument', 'Missing required verification parameters');

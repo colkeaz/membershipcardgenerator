@@ -1,7 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
 const env = (typeof import.meta !== 'undefined' && import.meta?.env)
   ? import.meta.env
@@ -17,8 +18,22 @@ const firebaseConfig = {
 };
 
 const app  = initializeApp(firebaseConfig);
-export const auth     = getAuth(app);
-export const db       = getFirestore(app);
+
+// Initialize App Check for billing protection
+if (typeof window !== 'undefined' && env.VITE_RECAPTCHA_SITE_KEY) {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider(env.VITE_RECAPTCHA_SITE_KEY),
+    isTokenAutoRefreshEnabled: true
+  });
+}
+
+export const auth = getAuth(app);
+
+// Enable offline persistence for caching and reducing reads
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
+});
+
 export const functions = getFunctions(app);
 export const studentGoogleProvider = new GoogleAuthProvider();
 studentGoogleProvider.setCustomParameters({ 
