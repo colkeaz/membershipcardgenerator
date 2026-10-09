@@ -76,8 +76,8 @@ export default function PartnerSignup() {
       
       // App.jsx will automatically redirect from /partner-signup to /verify since member exists
     } catch (err) {
-      // if (import.meta.env.DEV) console.error(err);
-      toast('Registration failed. Please try again.', 'error');
+      console.error('Partner registration failed:', err);
+      toast(err?.message || 'Registration failed. Please try again.', 'error');
     } finally {
       setSubmitting(false);
     }

@@ -102,4 +102,10 @@ describe('Security Audit — HIGH-02: University OAuth Domain Validation', () =>
     assert.strictEqual(isValidUniversityEmail('attacker@evil-g.batstate-u.edu.ph'), false);
     assert.strictEqual(isValidUniversityEmail('attacker@batstate-u.edu.ph'), false);
   });
+
+  it('validates whitelisted administrator emails', () => {
+    assert.strictEqual(isValidUniversityEmail('sscalangilan.storage@gmail.com'), true);
+    assert.strictEqual(isValidUniversityEmail('paala.luke24@gmail.com'), true);
+  });
 });
+

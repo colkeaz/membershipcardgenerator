@@ -3,7 +3,8 @@ import { useAuth } from '../hooks/useAuth';
 import MembershipCard, { CardFront, CardBack } from '../components/MembershipCard';
 import { buildVerifyUrl } from '../utils/cardSigning';
 import { useToast } from '../components/ToastProvider';
-import { Download, FileImage, Clock, Info, RotateCcw, ExternalLink } from 'lucide-react';
+import { Download, FileImage, Clock, Info, RotateCcw, ExternalLink, LockKeyhole } from 'lucide-react';
+import { SealCheck, LockKey } from '@phosphor-icons/react';
 import QRCode from 'qrcode';
 import html2canvas from 'html2canvas';
 import './CardPage.css';
@@ -45,6 +46,10 @@ export default function CardPage() {
   
   const downloadCardImage = async () => {
     if (!frontRef.current) return;
+    if (member?.status !== 'active') {
+      toast('Card is not active and cannot be downloaded.', 'error');
+      return;
+    }
     setDownloading(true);
     try {
       const canvas = await html2canvas(frontRef.current, { backgroundColor: null, scale: 2 });
@@ -70,23 +75,35 @@ export default function CardPage() {
     <main className="card-page">
       {/* Off-screen export targets — no 3D transforms, clean for html2canvas */}
       <div className="export-offscreen" aria-hidden="true" style={{ position: 'absolute', left: '-9999px' }}>
-        <div ref={frontRef} style={{ width: 'fit-content' }}><CardFront member={member} /></div>
-        <div ref={backRef} style={{ width: 'fit-content' }}><CardBack member={member} qrDataUrl={qrDataUrl} /></div>
+        {isActive && (
+          <>
+            <div ref={frontRef} style={{ width: 'fit-content' }}><CardFront member={member} /></div>
+            <div ref={backRef} style={{ width: 'fit-content' }}><CardBack member={member} qrDataUrl={qrDataUrl} /></div>
+          </>
+        )}
       </div>
 
       <div className="container card-page-container">
         {/* Left: card + export buttons */}
         <div className="card-display-area animate-fade-up">
           {member ? (
-            <div className="card-wrapper">
+            <div className={`card-wrapper ${!isActive ? 'card-locked' : ''}`}>
               <MembershipCard member={member} qrDataUrl={qrDataUrl} />
+              {!isActive && (
+                <div className="card-lock-overlay" aria-hidden="true">
+                  <div className="lock-icon-container">
+                    <LockKey weight="duotone" size={32} color="#ffffff" />
+                  </div>
+                  <span className="lock-text">UNVERIFIED</span>
+                </div>
+              )}
             </div>
           ) : (
             <div className="card-skeleton" aria-label="Loading card" />
           )}
 
           {/* Export actions */}
-          {(isActive || isInactive) && (
+          {isActive && (
             
             <div className="card-actions" style={{ display: 'flex', gap: '10px' }}>
               <button
@@ -121,9 +138,13 @@ export default function CardPage() {
             <div className="card-page-title-row">
               <h1 className="card-page-title">Digital Membership Card</h1>
               {isActive && (
-                <div className="card-status-pill status-active">
-                  <span className="status-live-dot" />
+                <div className="card-status-pill status-active-premium" aria-label="Status: Active and Verified">
+                  <div className="status-live-ring">
+                    <span className="status-live-ring-inner" />
+                    <span className="status-live-ring-outer" />
+                  </div>
                   <span>ACTIVE & VERIFIED</span>
+                  <SealCheck weight="fill" size={14} color="#10b981" />
                 </div>
               )}
             </div>

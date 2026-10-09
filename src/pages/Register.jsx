@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../components/ToastProvider';
 import { generateMembershipNumber, getCurrentSchoolYear, getCurrentSemester } from '../utils/memberNumber';
 // Fixed: MED-01 Missing Input Sanitization on Registration as per audit
-import { validateFullName, validateStudentId, sanitizeInput } from '../utils/validators';
+import { validateFullName, validateStudentId, sanitizeInput, WHITELISTED_EMAILS } from '../utils/validators';
 import { UserCheck, BookOpen, GraduationCap, Hash } from 'lucide-react';
 import PrivacyConsentModal from '../components/PrivacyConsentModal';
 import './Register.css';
@@ -162,12 +162,14 @@ export default function Register() {
 
       // Fixed: MED-01 Sanitize inputs before persisting to Firestore
       const cleanFullName  = sanitizeInput(form.fullName, 100);
-      const cleanStudentId = sanitizeInput(form.studentId, 20);
+      const normalizedId   = (form.studentId || '').replace(/[–—−]/g, '-').trim();
+      const cleanStudentId = sanitizeInput(normalizedId, 20);
 
       let membershipNumber;
       await runTransaction(db, async (tx) => {
         const counterSnap = await tx.get(counterRef);
-        const seq = (counterSnap.exists() ? counterSnap.data().count : 0) + 1;
+        const currentCount = (counterSnap.exists() && typeof counterSnap.data().count === 'number') ? counterSnap.data().count : 0;
+        const seq = currentCount + 1;
         membershipNumber = generateMembershipNumber(seq, 'member', form.department);
         tx.set(counterRef, { count: seq }, { merge: true });
         tx.set(memberRef, {
@@ -195,8 +197,8 @@ export default function Register() {
       toast('Registration submitted! Awaiting officer approval.', 'success');
       navigate('/card');
     } catch (err) {
-      // if (import.meta.env.DEV) console.error(err);
-      toast('Registration failed. Please try again.', 'error');
+      console.error('Registration failed:', err);
+      toast(err?.message || 'Registration failed. Please try again.', 'error');
     } finally {
       setLoading(false);
       setShowPrivacyModal(false);
