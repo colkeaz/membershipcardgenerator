@@ -15,7 +15,7 @@ service cloud.firestore {
             (docId == 'memberCounter' || docId == 'partnerCounter')
             && (
               (!exists(/databases/$(database)/documents/org/$(docId)) && request.resource.data.count == 1)
-              || request.resource.data.count == resource.data.count + 1
+              || (exists(/databases/$(database)/documents/org/$(docId)) && request.resource.data.count == resource.data.count + 1)
             )
           )
         );
@@ -24,11 +24,20 @@ service cloud.firestore {
     // ── Members ──
     match /members/{uid} {
       // Fixed: HIGH-03 Removed Public Read Access to Member PII
-      // Authenticated users can read their own profile, officers/admins/partners can read any profile.
-      allow get: if request.auth != null && (request.auth.uid == uid || isOfficerOrAbove() || isPartner());
+      // Authenticated users can read their own profile (by UID or email), officers/admins/partners can read any profile.
+      allow get: if request.auth != null && (
+        request.auth.uid == uid
+        || (resource != null && resource.data.get('email', '').lower() == request.auth.token.email.lower())
+        || isOfficerOrAbove()
+        || isPartner()
+      );
 
-      // Allow listing/searching all members ONLY for officers, admins, partners
-      allow list: if request.auth != null && (isOfficerOrAbove() || isPartner());
+      // Allow listing/searching all members for officers, admins, partners, or querying own record by email
+      allow list: if request.auth != null && (
+        isOfficerOrAbove()
+        || isPartner()
+        || (resource != null && resource.data.get('email', '').lower() == request.auth.token.email.lower())
+      );
 
       // ── SELF-REGISTRATION ──
       // Fixed: MED-01 Server-side input validation on registration as per audit
@@ -43,14 +52,14 @@ service cloud.firestore {
         && (
           (
             // Whitelisted Admins
-            request.auth.token.email.lower() in ['sscalangilan.storage@gmail.com', 'paala.luke24@gmail.com']
+            isWhitelistedAdmin()
             && request.resource.data.role == 'admin'
             && request.resource.data.status == 'active'
           ) || (
             // Regular Students & Partners
             (
               request.auth.token.email.lower().matches('.*@g\\.batstate-u\\.edu\\.ph') ||
-              request.auth.token.email.lower() in ['sscalangilan.storage@gmail.com', 'paala.luke24@gmail.com']
+              isWhitelistedAdmin()
             )
             && request.resource.data.status == 'pending'
             && (
@@ -68,7 +77,7 @@ service cloud.firestore {
 
       // A member can update their own non-sensitive fields
       allow update: if request.auth != null
-        && request.auth.uid == uid
+        && (request.auth.uid == uid || (resource != null && resource.data.get('email', '').lower() == request.auth.token.email.lower()))
         && !request.resource.data.diff(resource.data).affectedKeys()
             .hasAny(['role', 'status', 'membershipNumber']);
 
@@ -86,6 +95,11 @@ service cloud.firestore {
     }
 
     // ── Helpers ──
+    function isWhitelistedAdmin() {
+      return request.auth != null
+        && request.auth.token.email.lower() in ['sscalangilan.storage@gmail.com', 'paala.luke24@gmail.com'];
+    }
+
     // Safe lookup — returns empty map if doc doesn't exist (avoids permission errors)
     function getMemberRole() {
       let docRef = /databases/$(database)/documents/members/$(request.auth.uid);
@@ -93,12 +107,11 @@ service cloud.firestore {
     }
 
     function isOfficerOrAbove() {
-      let role = getMemberRole();
-      return role == 'officer' || role == 'admin';
+      return isWhitelistedAdmin() || getMemberRole() == 'officer' || getMemberRole() == 'admin';
     }
 
     function isAdmin() {
-      return getMemberRole() == 'admin';
+      return isWhitelistedAdmin() || getMemberRole() == 'admin';
     }
 
     function isPartner() {
