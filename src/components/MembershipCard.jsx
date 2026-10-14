@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef } from 'react';
+import { LockKey } from '@phosphor-icons/react';
 import { getExpiryLabel } from '../utils/memberNumber';
 import './MembershipCard.css';
 
@@ -89,10 +90,6 @@ export const CardFront = React.forwardRef(function CardFront({ member, isPreview
       {isPreview ? (
         <div className="card-preview-overlay" aria-label="Preview">
           <span>PREVIEW</span>
-        </div>
-      ) : (member?.status === 'pending' || member?.status === 'inactive') ? (
-        <div className="card-preview-overlay card-inactive-overlay" aria-label="Inactive">
-          <span>INACTIVE</span>
         </div>
       ) : null}
     </div>
@@ -196,21 +193,21 @@ export const CardBack = React.forwardRef(function CardBack({ member, qrDataUrl, 
         <div className="card-partners-row card-partners-row-1">
           {ROW_1.map((p, i) => (
             <div className="card-partner-item" key={i} title={p.alt}>
-              <img src={`/partnership-logo/${p.file}`} alt={p.alt} />
+              <img src={`/partnership-logo/${p.file}`} alt={p.alt} loading="lazy" decoding="async" />
             </div>
           ))}
         </div>
         <div className="card-partners-row card-partners-row-2">
           {ROW_2.map((p, i) => (
             <div className="card-partner-item" key={i} title={p.alt}>
-              <img src={`/partnership-logo/${p.file}`} alt={p.alt} />
+              <img src={`/partnership-logo/${p.file}`} alt={p.alt} loading="lazy" decoding="async" />
             </div>
           ))}
         </div>
         <div className="card-partners-row card-partners-row-3">
           {ROW_3.map((p, i) => (
             <div className="card-partner-item" key={i} title={p.alt}>
-              <img src={`/partnership-logo/${p.file}`} alt={p.alt} />
+              <img src={`/partnership-logo/${p.file}`} alt={p.alt} loading="lazy" decoding="async" />
             </div>
           ))}
         </div>
@@ -226,10 +223,6 @@ export const CardBack = React.forwardRef(function CardBack({ member, qrDataUrl, 
         <div className="card-preview-overlay" aria-label="Preview">
           <span>PREVIEW</span>
         </div>
-      ) : (member?.status === 'pending' || member?.status === 'inactive') ? (
-        <div className="card-preview-overlay card-inactive-overlay" aria-label="Inactive">
-          <span>INACTIVE</span>
-        </div>
       ) : null}
     </div>
   );
@@ -238,45 +231,71 @@ export const CardBack = React.forwardRef(function CardBack({ member, qrDataUrl, 
 /* ─────────────────────────────────────────────
    INTERACTIVE FLIP CARD
    ───────────────────────────────────────────── */
-export default function MembershipCard({ member, qrDataUrl, autoFlip = false, isPreview = false }) {
+const MembershipCard = forwardRef(function MembershipCard({
+  member,
+  qrDataUrl,
+  autoFlip = false,
+  isPreview = false,
+  isLocked = false,
+}, ref) {
   const [flipped, setFlipped] = useState(false);
   const [showHint, setShowHint] = useState(true);
 
   // Hide the "click to flip" hint after 3s
   useEffect(() => {
+    if (isLocked) return;
     const t = setTimeout(() => setShowHint(false), 3000);
     return () => clearTimeout(t);
-  }, []);
+  }, [isLocked]);
 
   // Auto-flip loop for landing page preview
   useEffect(() => {
-    if (!autoFlip) return;
+    if (!autoFlip || isLocked) return;
     const flip = setTimeout(() => setFlipped(true), 2000);
     const unflip = setTimeout(() => setFlipped(false), 5000);
     return () => { clearTimeout(flip); clearTimeout(unflip); };
-  }, [autoFlip]);
+  }, [autoFlip, isLocked]);
+
+  const handleFlip = () => {
+    if (!isLocked) {
+      setFlipped(f => !f);
+    }
+  };
 
   return (
-    <div className="card-scene-wrapper">
-      {showHint && !autoFlip && (
+    <div className={`card-scene-wrapper ${isLocked ? 'card-locked' : ''}`} ref={ref}>
+      {showHint && !autoFlip && !isLocked && (
         <div className="card-hint" aria-hidden="true">
           ↻ Click card to flip
         </div>
       )}
       <div
-        className="card-scene"
-        onClick={() => setFlipped(f => !f)}
+        className={`card-scene ${isLocked ? 'is-locked' : ''}`}
+        onClick={handleFlip}
         role="button"
-        tabIndex={0}
-        aria-label={`Membership card — click to flip to ${flipped ? 'front' : 'back'}`}
-        onKeyDown={(e) => e.key === 'Enter' && setFlipped(f => !f)}
+        tabIndex={isLocked ? -1 : 0}
+        aria-label={isLocked ? "Membership card (Unverified)" : `Membership card — click to flip to ${flipped ? 'front' : 'back'}`}
+        onKeyDown={(e) => {
+          if (!isLocked && e.key === 'Enter') handleFlip();
+        }}
       >
-        <div className={`card-inner ${flipped ? 'is-flipped' : ''}`}>
+        <div className={`card-inner ${flipped && !isLocked ? 'is-flipped' : ''}`}>
           <CardFront member={member} isPreview={isPreview} />
           <CardBack member={member} qrDataUrl={qrDataUrl} isPreview={isPreview} />
         </div>
+
+        {isLocked && (
+          <div className="card-lock-overlay" aria-hidden="true">
+            <div className="lock-icon-container">
+              <LockKey weight="duotone" size={32} color="#ffffff" />
+            </div>
+            <span className="lock-text">UNVERIFIED</span>
+          </div>
+        )}
       </div>
     </div>
   );
-}
+});
+
+export default MembershipCard;
 

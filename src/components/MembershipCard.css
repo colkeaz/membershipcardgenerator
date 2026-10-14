@@ -684,3 +684,57 @@
   pointer-events: none;
   mix-blend-mode: multiply;
 }
+
+
+/* ─── Locked / Unverified Card Overlay ─── */
+.card-scene.is-locked {
+  cursor: default;
+  pointer-events: none;
+  position: relative;
+}
+
+.card-scene.is-locked > .card-inner {
+  filter: blur(8px) grayscale(60%);
+  transition: filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-lock-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 18px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  color: white;
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
+}
+
+.lock-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.lock-text {
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}

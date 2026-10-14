@@ -1,10 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import MembershipCard, { CardFront, CardBack } from '../components/MembershipCard';
+import MembershipCard, { CardFront } from '../components/MembershipCard';
 import { buildVerifyUrl } from '../utils/cardSigning';
 import { useToast } from '../components/ToastProvider';
 import { Download, FileImage, Clock, Info, RotateCcw, ExternalLink, LockKeyhole } from 'lucide-react';
-import { SealCheck, LockKey } from '@phosphor-icons/react';
+import { SealCheck } from '@phosphor-icons/react';
 import QRCode from 'qrcode';
 import html2canvas from 'html2canvas';
 import './CardPage.css';
@@ -19,7 +19,6 @@ export default function CardPage() {
 
   // Refs for off-screen export targets (no 3D transform — clean for html2canvas)
   const frontRef = useRef(null);
-  const backRef  = useRef(null);
 
   const [qrDataUrl, setQrDataUrl] = useState('');
 
@@ -76,10 +75,7 @@ export default function CardPage() {
       {/* Off-screen export targets — no 3D transforms, clean for html2canvas */}
       <div className="export-offscreen" aria-hidden="true" style={{ position: 'absolute', left: '-9999px' }}>
         {isActive && (
-          <>
-            <div ref={frontRef} style={{ width: 'fit-content' }}><CardFront member={member} /></div>
-            <div ref={backRef} style={{ width: 'fit-content' }}><CardBack member={member} qrDataUrl={qrDataUrl} /></div>
-          </>
+          <div ref={frontRef} style={{ width: 'fit-content' }}><CardFront member={member} /></div>
         )}
       </div>
 
@@ -87,17 +83,7 @@ export default function CardPage() {
         {/* Left: card + export buttons */}
         <div className="card-display-area animate-fade-up">
           {member ? (
-            <div className={`card-wrapper ${!isActive ? 'card-locked' : ''}`}>
-              <MembershipCard member={member} qrDataUrl={qrDataUrl} />
-              {!isActive && (
-                <div className="card-lock-overlay" aria-hidden="true">
-                  <div className="lock-icon-container">
-                    <LockKey weight="duotone" size={32} color="#ffffff" />
-                  </div>
-                  <span className="lock-text">UNVERIFIED</span>
-                </div>
-              )}
-            </div>
+            <MembershipCard member={member} qrDataUrl={qrDataUrl} isLocked={!isActive} />
           ) : (
             <div className="card-skeleton" aria-label="Loading card" />
           )}
@@ -163,6 +149,9 @@ export default function CardPage() {
               <div>
                 <strong>Pending Officer Review</strong>
                 <p>An SSC-AL officer will verify your enrollment credentials and activate your membership shortly.</p>
+                <p style={{ marginTop: '8px', fontWeight: 'bold' }}>
+                  Kindly pay your 45.00 membership fee through your block representative, who will remit it to the SSC Office along with the payments of other block members.
+                </p>
               </div>
             </div>
           )}

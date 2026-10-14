@@ -59,7 +59,9 @@ export default function Landing() {
 
           <p className="landing-description">
             {user
-              ? 'Your official digital membership card is active. Access your credentials, verify partner perks, or download your card to your device.'
+              ? (member && member.status !== 'active'
+                  ? 'Your digital membership card is pending verification. Please visit the SSC office to validate your active status.'
+                  : 'Your official digital membership card is active. Access your credentials, verify partner perks, or download your card to your device.')
               : 'Unlock exclusive discounts, VIP perks, and instantly prove your student status at over 30 local establishments with the official SSC-AL Digital Membership Card.'}
           </p>
 
@@ -122,8 +124,9 @@ export default function Landing() {
           <MembershipCard
             member={user && member ? member : DEMO_MEMBER}
             qrDataUrl={demoQr}
-            autoFlip={!user}
+            autoFlip={!user && !(member && member.status !== 'active')}
             isPreview={!user || !member}
+            isLocked={Boolean(user && member && member.status !== 'active')}
           />
         </div>
       </div>
