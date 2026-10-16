@@ -75,14 +75,15 @@ service cloud.firestore {
           )
         );
 
-      // A member can update their own non-sensitive fields
+      // Fixed: SEC-TICKET-01 Members must submit a correction ticket rather than mutating verified profile fields directly.
+      // Only allow initial UID-linking when a CSV-imported record is claimed by matching email.
       allow update: if request.auth != null
-        && (request.auth.uid == uid || (resource != null && resource.data.get('email', '').lower() == request.auth.token.email.lower()))
-        && !request.resource.data.diff(resource.data).affectedKeys()
-            .hasAny(['role', 'status', 'membershipNumber']);
+        && resource != null
+        && resource.data.get('email', '').lower() == request.auth.token.email.lower()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid', 'photoURL']);
 
       // Fixed: MED-02 Prevent Officer-to-Admin Privilege Escalation as per audit
-      // Officers can update members (e.g. approve/deactivate), but ONLY admins can change the 'role' field
+      // Officers can update members (e.g. approve/deactivate/edit details), but ONLY admins can change the 'role' field
       allow update: if request.auth != null
         && isOfficerOrAbove()
         && (
@@ -91,6 +92,50 @@ service cloud.firestore {
         );
 
       // Only admins can delete
+      allow delete: if request.auth != null && isAdmin();
+    }
+
+    // ── Correction Tickets ──
+    match /tickets/{ticketId} {
+      // Students can read their own tickets; Officers/Admins can read all tickets
+      allow get, list: if request.auth != null && (
+        isOfficerOrAbove()
+        || (resource != null && resource.data.uid == request.auth.uid)
+      );
+
+      // Students (pending or active) can create a ticket for their own profile with all 5 detail fields validated
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.category == 'edit_details'
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() > 0
+        && request.resource.data.reason.size() <= 500
+        && request.resource.data.proposedChanges is map
+        && request.resource.data.proposedChanges.fullName is string
+        && request.resource.data.proposedChanges.fullName.size() > 0
+        && request.resource.data.proposedChanges.fullName.size() <= 100
+        && request.resource.data.proposedChanges.studentId is string
+        && request.resource.data.proposedChanges.studentId.matches('^([0-9]{2}|[0-9]{4})-[0-9]{5}$')
+        && request.resource.data.proposedChanges.department is string
+        && request.resource.data.proposedChanges.department.size() > 0
+        && request.resource.data.proposedChanges.program is string
+        && request.resource.data.proposedChanges.program.size() > 0
+        && request.resource.data.proposedChanges.yearLevel is string
+        && request.resource.data.proposedChanges.yearLevel.size() > 0;
+
+      // Students can cancel their own pending ticket; Officers/Admins can approve or reject tickets
+      allow update: if request.auth != null && (
+        (
+          resource.data.uid == request.auth.uid
+          && resource.data.status == 'pending'
+          && request.resource.data.status == 'cancelled'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt'])
+        )
+        || isOfficerOrAbove()
+      );
+
+      // Only admins can delete tickets
       allow delete: if request.auth != null && isAdmin();
     }
 

@@ -53,4 +53,16 @@ describe('Security Audit — Firestore Rules Static Analysis & Policy Checks', (
     assert.ok(gitignoreContent.includes('.env'), '.gitignore must include .env');
     assert.ok(gitignoreContent.includes('.env.local'), '.gitignore must include .env.local');
   });
+
+  it('SEC-TICKET-01: enforces correction ticket workflow and validates all 5 registration fields on /tickets/{ticketId}', () => {
+    assert.ok(rulesContent.includes('Fixed: SEC-TICKET-01'), 'Must include SEC-TICKET-01 comment');
+    assert.ok(rulesContent.includes('match /tickets/{ticketId}'), 'Must define /tickets/{ticketId} rules');
+    assert.ok(rulesContent.includes("request.resource.data.category == 'edit_details'"), 'Ticket category must be edit_details');
+    assert.ok(rulesContent.includes('request.resource.data.proposedChanges.fullName.size() <= 100'), 'Must validate fullName in proposedChanges');
+    assert.ok(rulesContent.includes("request.resource.data.proposedChanges.studentId.matches('^([0-9]{2}|[0-9]{4})-[0-9]{5}$')"), 'Must validate SR-Code (studentId) in proposedChanges');
+    assert.ok(rulesContent.includes('request.resource.data.proposedChanges.department.size() > 0'), 'Must validate department in proposedChanges');
+    assert.ok(rulesContent.includes('request.resource.data.proposedChanges.program.size() > 0'), 'Must validate program in proposedChanges');
+    assert.ok(rulesContent.includes('request.resource.data.proposedChanges.yearLevel.size() > 0'), 'Must validate yearLevel in proposedChanges');
+  });
 });
+

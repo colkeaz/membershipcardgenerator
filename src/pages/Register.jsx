@@ -7,99 +7,10 @@ import { useToast } from '../components/ToastProvider';
 import { generateMembershipNumber, getCurrentSchoolYear, getCurrentSemester } from '../utils/memberNumber';
 // Fixed: MED-01 Missing Input Sanitization on Registration as per audit
 import { validateFullName, validateStudentId, sanitizeInput, WHITELISTED_EMAILS } from '../utils/validators';
+import { YEAR_LEVELS, DEPARTMENTS } from '../utils/constants';
 import { UserCheck, BookOpen, GraduationCap, Hash } from 'lucide-react';
 import PrivacyConsentModal from '../components/PrivacyConsentModal';
 import './Register.css';
-
-const YEAR_LEVELS = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year and above '];
-const DEPARTMENTS = {
-  "Department of Chemical Engineering": [
-    "Bachelor of Science in Ceramics Engineering (BSCerE)",
-    "Bachelor of Science in Chemical Engineering (BSChE)",
-    "Bachelor of Science in Food Engineering (BSFE)",
-    "Bachelor of Science in Metallurgical Engineering (BSMetE)"
-  ],
-  "Department of Civil Engineering": [
-    "Bachelor of Science in Civil Engineering (BSCE)",
-    "Bachelor of Science in Geodetic Engineering (BSGE)",
-    "Bachelor of Science in Geological Engineering (BSGeoE)",
-    "Bachelor of Science in Sanitary Engineering (BSSE)",
-    "Bachelor of Science in Transportation Systems Engineering (BSTE)"
-  ],
-  "Department of Electrical Engineering": [
-    "Bachelor of Science in Computer Engineering (BSCpE)",
-    "Bachelor of Science in Electrical Engineering (BSEE)"
-  ],
-  "Department of Electronics Engineering": [
-    "Bachelor of Science in Aerospace Engineering (BSAeE)",
-    "Bachelor of Science in Biomedical Engineering (BSBioE)",
-    "Bachelor of Science in Electronics Engineering (BSECE)",
-    "Bachelor of Science in Instrumentation and Control Engineering (BSICE)",
-    "Bachelor of Science in Mechatronics Engineering (BSMexE)"
-  ],
-  "Department of Industrial Engineering": [
-    "Bachelor of Science in Industrial Engineering (BSIE)"
-  ],
-  "Department of Mechanical Engineering": [
-    "Bachelor of Science in Automotive Engineering (BSAE)",
-    "Bachelor of Science in Mechanical Engineering (BSME)",
-    "Bachelor of Science in Petroleum Engineering (BSPetE)",
-    "Bachelor of Science in Naval Architecture and Marine Engineering (BSNAME)"
-  ],
-  "College of Architecture, Fine Arts and Design": [
-    "Bachelor of Fine Arts and Design Major in Visual Communication",
-    "Bachelor of Science in Architecture",
-    "Bachelor of Science in Interior Design"
-  ],
-  "College of Informatics and Computing Sciences": [
-    "Bachelor of Science in Computer Science",
-    "Bachelor of Science in Information Technology"
-  ],
-  "College of Engineering and Technology": [
-    "Bachelor of Automotive Engineering Technology",
-    "Bachelor of Civil Engineering Technology",
-    "Bachelor of Computer Engineering Technology",
-    "Bachelor of Drafting Engineering Technology",
-    "Bachelor of Electrical Engineering Technology",
-    "Bachelor of Electronics Engineering Technology",
-    "Bachelor of Food Engineering Technology",
-    "Bachelor of Instrumentation and Control Engineering Technology",
-    "Bachelor of Mechanical Engineering Technology",
-    "Bachelor of Mechatronics Engineering Technology",
-    "Bachelor of Welding and Fabrication Engineering Technology"
-  ],
-  "CAF Lobo": [
-    "Bachelor of Science in Agriculture",
-    "Bachelor of Science in Forestry"
-  ],
-  "CICS Balayan": [
-    "Bachelor of Science in Information Technology"
-  ],
-  "CET Balayan": [
-    "Bachelor of Industrial Technology - Automotive Technology",
-    "Bachelor of Industrial Technology - Civil Technology",
-    "Bachelor of Industrial Technology - Computer Technology",
-    "Bachelor of Industrial Technology - Drafting Technology",
-    "Bachelor of Industrial Technology - Electrical Technology",
-    "Bachelor of Industrial Technology - Electronics Technology",
-    "Bachelor of Industrial Technology - Instrumentation and Control Technology",
-    "Bachelor of Industrial Technology - Mechanical Technology"
-  ],
-  "CICS Mabini": [
-    "Bachelor of Science in Information Technology"
-  ],
-  "College of Engineering and Technology LIMA": [
-    "Bachelor of Science in Aerospace Engineering (BSAeE)",
-    "Bachelor of Science in Automotive Engineering (BSAE)",
-    "Bachelor of Science in Biomedical Engineering (BSBioE)",
-    "Bachelor of Science in Food Engineering (BSFE)",
-    "Bachelor of Science in Instrumentation and Control Engineering (BSICE)",
-    "Bachelor of Science in Mechatronics Engineering (BSMexE)",
-    "Bachelor of Science in Transportation Systems Engineering (BSTE)",
-    "Bachelor of Computer Engineering Technology",
-    "Bachelor of Electrical Engineering Technology"
-  ]
-};
 
 export default function Register() {
   const { user, refreshMember } = useAuth();

@@ -158,6 +158,69 @@
   transform: scale(0.96);
 }
 
+/* Notification Bell & Ticket Counter Badges */
+.navbar-link-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-brand-red, #c8102e);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.navbar-notif-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  transition: all 250ms ease;
+}
+
+.navbar-notif-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.navbar-notif-btn.has-unread {
+  border-color: rgba(212, 175, 55, 0.45);
+  color: var(--color-brand-gold, #d4af37);
+  background: rgba(212, 175, 55, 0.1);
+}
+
+.navbar-notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-brand-red, #c8102e);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0a0a0a;
+}
+
 @media (max-width: 840px) {
   .navbar {
     top: 1rem;

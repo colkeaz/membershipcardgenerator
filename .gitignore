@@ -10,5 +10,6 @@ dist/
 .vercel
 firebase-debug.log*
 
+PROJECT_MEMORY.md
 
 

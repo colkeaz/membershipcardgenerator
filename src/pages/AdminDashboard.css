@@ -232,3 +232,203 @@
   .csv-preview-row    { grid-template-columns: 1fr; }
 }
 
+/* ─── Correction Tickets Button & Review Modal ─── */
+.admin-tickets-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  position: relative;
+}
+
+.admin-tickets-btn.has-pending {
+  background: rgba(212, 175, 55, 0.14);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  color: var(--color-brand-gold, #d4af37);
+  font-weight: 700;
+}
+
+.admin-tickets-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-brand-red, #c8102e);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.admin-tickets-modal {
+  max-width: 680px;
+  width: 100%;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-ticket-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+
+.admin-ticket-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.admin-ticket-tab.active {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.admin-ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+  max-height: 62vh;
+}
+
+.admin-ticket-empty {
+  text-align: center;
+  padding: 36px 16px;
+  color: var(--color-text-tertiary);
+  font-size: 0.85rem;
+}
+
+.admin-ticket-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.admin-ticket-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-ticket-name {
+  display: block;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--color-text);
+}
+
+.admin-ticket-meta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.admin-ticket-reason {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-brand-gold, #d4af37);
+}
+
+.admin-ticket-diffs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.admin-ticket-diff-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+}
+
+.admin-ticket-diff-label {
+  font-weight: 700;
+  color: var(--color-text);
+  min-width: 135px;
+}
+
+.admin-ticket-diff-old {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  text-decoration: line-through;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+}
+
+.admin-ticket-diff-new {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+}
+
+.admin-ticket-dept-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.admin-ticket-resolved-meta {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+.admin-ticket-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border);
+}
+
+.admin-ticket-note-input {
+  flex: 1;
+  min-width: 180px;
+  font-size: 0.78rem;
+  padding: 6px 10px;
+}
+
+
